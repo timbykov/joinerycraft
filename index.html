@@ -126,13 +126,14 @@
   <header class="site-header" id="top">
     <div class="container header-inner">
       <a href="#top" class="brand" aria-label="Joinerycraft home">
-        <img src="images/favicon.png" alt="" width="40" height="40">
-        <span>Joinerycraft</span>
+        <img src="images/favicon.png" alt="" width="40" height="40" class="brand-mark">
+        <img src="images/wordmark.png" alt="Joinerycraft" class="wordmark" width="391" height="27">
       </a>
 
       <nav class="main-nav" aria-label="Main">
         <a href="#services">Services</a>
         <a href="#projects">Projects</a>
+        <a href="#design">Design yours</a>
         <a href="#process">Process</a>
         <a href="#reviews">Reviews</a>
         <a href="#showroom">Showroom</a>
@@ -154,6 +155,7 @@
     <div class="mobile-menu" id="mobileMenu" hidden>
       <a href="#services">Services</a>
       <a href="#projects">Projects</a>
+        <a href="#design">Design yours</a>
       <a href="#process">Process</a>
       <a href="#reviews">Reviews</a>
       <a href="#showroom">Showroom</a>
@@ -174,7 +176,7 @@
         <p class="hero-lede">Custom kitchens, walk-in wardrobes, vanities and living joinery, built in our own Chipping Norton workshop and installed by the same team that made it.</p>
         <div class="hero-actions">
           <a href="#quote" class="btn btn-accent btn-lg">Get a free quote &amp; 3D design</a>
-          <a href="#projects" class="btn btn-ghost-light btn-lg">See our work</a>
+          <a href="#design" class="btn btn-ghost-light btn-lg">Design your kitchen</a>
         </div>
         <ul class="hero-points">
           <li>Free 3D designs</li>
@@ -425,6 +427,72 @@
       </div>
     </section>
 
+    <!-- DESIGN CREATOR -->
+    <section class="section" id="design">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Design creator</p>
+          <h2>Design your kitchen in a minute.</h2>
+          <p class="section-lede">Play with layouts, doors, colours, benchtops and handles. When you like it, send it to us and we'll turn it into a full 3D design and quote for your space.</p>
+        </div>
+
+        <div class="designer" id="designer">
+          <div class="designer-stage">
+            <div class="designer-preview" id="designPreview" role="img" aria-label="Preview of your kitchen design"></div>
+            <p class="designer-summary" id="designSummary" aria-live="polite"></p>
+            <p class="designer-note">Illustration only. Your designer draws a full 3D design to your measurements.</p>
+          </div>
+
+          <div class="designer-controls" id="designControls">
+            <div class="opt-group" data-opt="layout">
+              <h3>Layout</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="wall">Wall run</button>
+                <button type="button" class="opt" data-val="island">With island</button>
+                <button type="button" class="opt" data-val="pantry">Island + pantry</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="door">
+              <h3>Door style</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="flat">Flat panel</button>
+                <button type="button" class="opt" data-val="shaker">Shaker</button>
+                <button type="button" class="opt" data-val="fingerpull">Fingerpull</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="base">
+              <h3>Base &amp; island colour</h3>
+              <div class="opt-row swatches" data-swatches="cabinet"></div>
+            </div>
+            <div class="opt-group" data-opt="upper">
+              <h3>Overhead colour</h3>
+              <div class="opt-row swatches" data-swatches="cabinet"></div>
+            </div>
+            <div class="opt-group" data-opt="bench">
+              <h3>Benchtop</h3>
+              <div class="opt-row swatches" data-swatches="bench"></div>
+            </div>
+            <div class="opt-group" data-opt="splash">
+              <h3>Splashback</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="subway">Subway tile</button>
+                <button type="button" class="opt" data-val="stone">Matching stone</button>
+                <button type="button" class="opt" data-val="glass">Smoked glass</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="handle">
+              <h3>Handles</h3>
+              <div class="opt-row swatches" data-swatches="handle"></div>
+            </div>
+            <div class="designer-actions">
+              <a href="#quote" class="btn btn-accent" id="designSend">Get a quote for this design</a>
+              <button type="button" class="btn btn-text" id="designRandom">Surprise me</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- PROCESS -->
     <section class="section" id="process">
       <div class="container">
@@ -537,6 +605,7 @@
 
         <form class="quote-form" id="quoteForm" name="quote" method="POST" action="/thank-you.html" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" novalidate>
           <input type="hidden" name="form-name" value="quote">
+          <input type="hidden" name="design" id="designField" value="">
           <p class="hp"><label>Leave this empty <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
 
           <div class="form-progress" aria-hidden="true">
@@ -756,6 +825,7 @@
     <button class="lb-nav lb-next" aria-label="Next photo">&#8250;</button>
   </div>
 
+  <script src="js/designer.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
 </html>
