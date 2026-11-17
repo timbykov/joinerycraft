@@ -47,7 +47,7 @@ button { font: inherit; cursor: pointer; }
 .skip-link:focus { left: 1rem; top: 1rem; }
 
 .eyebrow {
-  font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .14em;
+  font-family: "Josefin Sans", var(--sans); font-size: .82rem; font-weight: 400; text-transform: uppercase; letter-spacing: .22em;
   color: var(--oak); margin: 0 0 .9rem;
 }
 .eyebrow-light { color: #e3b98d; }
@@ -83,7 +83,7 @@ button { font: inherit; cursor: pointer; }
 .header-inner { height: var(--header-h); display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
 .brand { display: flex; align-items: center; gap: .7rem; text-decoration: none; flex-shrink: 0; }
 .brand img { width: 40px; height: 40px; border-radius: 50%; }
-.brand span { font-family: var(--serif); font-size: 1.35rem; font-weight: 400; letter-spacing: -.01em; }
+.brand span { font-family: "Josefin Sans", var(--sans); font-size: 1.05rem; font-weight: 300; letter-spacing: .32em; text-transform: uppercase; padding-top: 3px; }
 .main-nav { display: flex; gap: 1.75rem; }
 .main-nav a { text-decoration: none; font-size: .93rem; font-weight: 500; color: var(--muted); }
 .main-nav a:hover { color: var(--ink); }
@@ -309,7 +309,7 @@ legend { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; margin-
   body { padding-bottom: 72px; }
   .section { padding: 4.25rem 0; }
   .header-phone, .header-actions > .btn { display: none; }
-  .brand span { font-size: 1.2rem; }
+  .brand span { font-size: .9rem; letter-spacing: .26em; }
   .hero { min-height: 88vh; }
   .hero-inner { padding-bottom: 3rem; }
   .hero-shade { background: linear-gradient(0deg, rgba(20,18,15,.9) 0%, rgba(20,18,15,.55) 55%, rgba(20,18,15,.25) 100%); }
