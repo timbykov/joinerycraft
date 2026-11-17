@@ -179,6 +179,7 @@
           <a href="#design" class="btn btn-ghost-light btn-lg">Design your kitchen</a>
         </div>
         <ul class="hero-points">
+          <li>5.0★ on Google</li>
           <li>Free 3D designs</li>
           <li>Showroom by appointment</li>
           <li>Lifetime workmanship guarantee</li>
@@ -432,19 +433,23 @@
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Design creator</p>
-          <h2>Design your kitchen in a minute.</h2>
-          <p class="section-lede">Play with layouts, doors, colours, benchtops and handles. When you like it, send it to us and we'll turn it into a full 3D design and quote for your space.</p>
+          <h2>Design your kitchen or wardrobe in a minute.</h2>
+          <p class="section-lede">Play with layouts, doors, colours, finishes and handles. When you like it, send it to us and we'll turn it into a full 3D design and quote for your space.</p>
         </div>
 
         <div class="designer" id="designer">
           <div class="designer-stage">
-            <div class="designer-preview" id="designPreview" role="img" aria-label="Preview of your kitchen design"></div>
+            <div class="designer-preview" id="designPreview" role="img" aria-label="Preview of your design"></div>
             <p class="designer-summary" id="designSummary" aria-live="polite"></p>
             <p class="designer-note">Illustration only. Your designer draws a full 3D design to your measurements.</p>
           </div>
 
           <div class="designer-controls" id="designControls">
-            <div class="opt-group" data-opt="layout">
+            <div class="mode-tabs" role="group" aria-label="What are you designing?">
+              <button type="button" class="mode-tab is-active" data-mode-tab="kitchen" aria-pressed="true">Kitchen</button>
+              <button type="button" class="mode-tab" data-mode-tab="wardrobe" aria-pressed="false">Wardrobe</button>
+            </div>
+            <div class="opt-group" data-opt="layout" data-mode="kitchen">
               <h3>Layout</h3>
               <div class="opt-row">
                 <button type="button" class="opt" data-val="wall">Wall run</button>
@@ -452,7 +457,7 @@
                 <button type="button" class="opt" data-val="pantry">Island + pantry</button>
               </div>
             </div>
-            <div class="opt-group" data-opt="door">
+            <div class="opt-group" data-opt="door" data-mode="kitchen">
               <h3>Door style</h3>
               <div class="opt-row">
                 <button type="button" class="opt" data-val="flat">Flat panel</button>
@@ -460,19 +465,19 @@
                 <button type="button" class="opt" data-val="fingerpull">Fingerpull</button>
               </div>
             </div>
-            <div class="opt-group" data-opt="base">
+            <div class="opt-group" data-opt="base" data-mode="kitchen">
               <h3>Base &amp; island colour</h3>
               <div class="opt-row swatches" data-swatches="cabinet"></div>
             </div>
-            <div class="opt-group" data-opt="upper">
+            <div class="opt-group" data-opt="upper" data-mode="kitchen">
               <h3>Overhead colour</h3>
               <div class="opt-row swatches" data-swatches="cabinet"></div>
             </div>
-            <div class="opt-group" data-opt="bench">
+            <div class="opt-group" data-opt="bench" data-mode="kitchen">
               <h3>Benchtop</h3>
               <div class="opt-row swatches" data-swatches="bench"></div>
             </div>
-            <div class="opt-group" data-opt="splash">
+            <div class="opt-group" data-opt="splash" data-mode="kitchen">
               <h3>Splashback</h3>
               <div class="opt-row">
                 <button type="button" class="opt" data-val="subway">Subway tile</button>
@@ -480,8 +485,54 @@
                 <button type="button" class="opt" data-val="glass">Smoked glass</button>
               </div>
             </div>
-            <div class="opt-group" data-opt="handle">
+            <div class="opt-group" data-opt="handle" data-mode="kitchen">
               <h3>Handles</h3>
+              <div class="opt-row swatches" data-swatches="handle"></div>
+            </div>
+            <div class="opt-group" data-opt="wtype" data-mode="wardrobe" hidden>
+              <h3>Type</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="builtin">Built-in robe</button>
+                <button type="button" class="opt" data-val="walkin">Walk-in robe</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="wdoors" data-mode="wardrobe" data-only="builtin" hidden>
+              <h3>Doors</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="hinged">Hinged</button>
+                <button type="button" class="opt" data-val="slidingpanel">Sliding panel</button>
+                <button type="button" class="opt" data-val="mirror">Sliding mirror</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="door" data-mode="wardrobe" data-only="hinged" hidden>
+              <h3>Door style</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="flat">Flat panel</button>
+                <button type="button" class="opt" data-val="shaker">Shaker</button>
+                <button type="button" class="opt" data-val="fingerpull">Fingerpull</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="finish" data-mode="wardrobe" hidden>
+              <h3>Finish</h3>
+              <div class="opt-row swatches" data-swatches="cabinet"></div>
+            </div>
+            <div class="opt-group" data-opt="internals" data-mode="wardrobe" data-only="walkin" hidden>
+              <h3>Storage mix</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="balanced">Balanced</button>
+                <button type="button" class="opt" data-val="hanging">Mostly hanging</button>
+                <button type="button" class="opt" data-val="drawers">Drawers &amp; shoes</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="light" data-mode="wardrobe" data-only="walkin" hidden>
+              <h3>LED lighting</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="on">Yes please</button>
+                <button type="button" class="opt" data-val="off">No thanks</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="handle" data-mode="wardrobe" hidden>
+              <h3>Handles &amp; trims</h3>
               <div class="opt-row swatches" data-swatches="handle"></div>
             </div>
             <div class="designer-actions">
@@ -533,6 +584,12 @@
         <div class="section-head">
           <p class="eyebrow eyebrow-light">Reviews</p>
           <h2>Recommended across Sydney.</h2>
+          <a class="google-badge" href="https://www.google.com/maps/search/?api=1&amp;query=JoineryCraft+%26+Co+11%2F23+Childs+Rd+Chipping+Norton+NSW+2170" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.5 5.8c4.4-4 6.8-10 6.8-17.2z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.3.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+            <strong>5.0</strong>
+            <span class="stars" aria-hidden="true">★★★★★</span>
+            <span>on Google · Read our reviews</span>
+          </a>
         </div>
 
         <div class="reviews">

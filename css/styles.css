@@ -366,3 +366,12 @@ legend { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; margin-
   .opt-swatch { padding: .3rem; }
   .dot { width: 30px; height: 30px; }
 }
+.mode-tabs { display: inline-grid; grid-template-columns: 1fr 1fr; background: var(--tint); border-radius: 999px; padding: 4px; margin-bottom: 1.25rem; }
+.mode-tab { border: 0; background: transparent; padding: .55rem 1.4rem; border-radius: 999px; font-weight: 700; font-size: .92rem; color: var(--muted); }
+.mode-tab.is-active { background: var(--ink); color: #fff; }
+.opt-group[hidden] { display: none; }
+.google-badge { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .55rem; margin-top: .5rem; padding: .6rem 1.1rem; border-radius: 999px; background: #fff; color: var(--ink); text-decoration: none; font-size: .9rem; box-shadow: var(--shadow); transition: transform .2s; }
+.google-badge:hover { transform: translateY(-1px); }
+.google-badge strong { font-size: 1.05rem; }
+.google-badge .stars { margin: 0; color: #f4b400; letter-spacing: .05em; }
+.google-badge span:last-child { color: var(--muted); }

@@ -33,7 +33,10 @@
   };
   var lists = { cabinet: CABINET, bench: BENCH, handle: HANDLE };
 
-  var state = { layout: 'island', door: 'shaker', base: 'sage', upper: 'white', bench: 'calacatta', splash: 'subway', handle: 'brass' };
+  var ks = { layout: 'island', door: 'shaker', base: 'sage', upper: 'white', bench: 'calacatta', splash: 'subway', handle: 'brass' };
+  var ws = { wtype: 'walkin', wdoors: 'hinged', door: 'shaker', finish: 'oak', internals: 'balanced', light: 'on', handle: 'black' };
+  var mode = 'kitchen';
+  var state = ks;
 
   /* Build swatch buttons */
   root.querySelectorAll('[data-swatches]').forEach(function (row) {
@@ -85,7 +88,8 @@
       out += rect(x + (w - hw) / 2, y + Math.min(14, h * 0.28), hw, 4, hd.fill, ' rx="2"');
     } else {
       var hx = opts.hingeLeft ? x + w - 12 : x + 8;
-      var hy = opts.upper ? y + h - 46 : y + 12;
+      var hy = opts.tall ? y + h * 0.42 : opts.upper ? y + h - 46 : y + 12;
+      if (opts.tall) { out += rect(hx, hy, 4, 70, hd.fill, ' rx="2"'); return out; }
       out += rect(hx, hy, 4, 34, hd.fill, ' rx="2"');
     }
     return out;
@@ -114,7 +118,90 @@
     return out;
   }
 
+  function wardrobeSummary() {
+    var fin = find(CABINET, ws.finish).name.toLowerCase();
+    var hd = find(HANDLE, ws.handle);
+    if (ws.wtype === 'walkin') {
+      var mix = { balanced: 'a balanced mix of hanging, shelves and drawers', hanging: 'mostly hanging space', drawers: 'lots of drawers and shoe shelves' }[ws.internals];
+      return 'Walk-in robe in ' + fin + ' with ' + mix + (ws.light === 'on' ? ', LED strip lighting' : '') + (hd.val === 'none' ? ', push-to-open drawers.' : ', ' + hd.name.toLowerCase() + ' handles.');
+    }
+    if (ws.wdoors === 'mirror') return 'Built-in robe with sliding mirror doors, ' + (hd.val === 'none' ? 'aluminium' : hd.name.toLowerCase()) + ' frames, ' + fin + ' interior.';
+    if (ws.wdoors === 'slidingpanel') return 'Built-in robe with sliding doors in ' + fin + ', ' + (hd.val === 'none' ? 'aluminium' : hd.name.toLowerCase()) + ' frames.';
+    var hs = ws.door === 'fingerpull' ? 'fingerpull (no handles)' : (hd.val === 'none' ? 'push-to-open' : hd.name.toLowerCase() + ' handles');
+    return 'Built-in robe with hinged ' + LABELS.door[ws.door] + ' in ' + fin + ', ' + hs + '.';
+  }
+
+  function renderWardrobe() {
+    var c = find(CABINET, ws.finish);
+    var hd = find(HANDLE, ws.handle);
+    var trim = hd.val === 'none' ? '#b9bcbf' : hd.fill;
+    var W = 800, H = 520, x0 = 90, x1 = 710, top = 50, floorY = 450;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"><defs>' +
+      '<pattern id="oak" width="60" height="16" patternUnits="userSpaceOnUse"><rect width="60" height="16" fill="#c9a06e"/><path d="M0 4 Q15 2 30 5 T60 4" stroke="#b48a58" stroke-width="1.4" fill="none"/><path d="M0 11 Q20 13 35 10 T60 12" stroke="#d8b483" stroke-width="1.2" fill="none"/></pattern>' +
+      '<pattern id="walnut" width="60" height="16" patternUnits="userSpaceOnUse"><rect width="60" height="16" fill="#6e4a31"/><path d="M0 5 Q15 3 30 6 T60 5" stroke="#5a3b26" stroke-width="1.5" fill="none"/><path d="M0 12 Q20 14 35 11 T60 13" stroke="#80583c" stroke-width="1.2" fill="none"/></pattern>' +
+      '<linearGradient id="mirror" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#dfe5e9"/><stop offset=".45" stop-color="#f6f8f9"/><stop offset=".55" stop-color="#cfd7dc"/><stop offset="1" stop-color="#e6ebee"/></linearGradient>' +
+      '<linearGradient id="floor" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d8cdbd"/><stop offset="1" stop-color="#c7b9a5"/></linearGradient>' +
+      '<linearGradient id="led" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffe7b0" stop-opacity=".9"/><stop offset="1" stop-color="#ffe7b0" stop-opacity="0"/></linearGradient>' +
+      '</defs>';
+    svg += rect(0, 0, W, floorY, '#efe9e0') + rect(0, floorY, W, H - floorY, 'url(#floor)');
+    svg += '<ellipse cx="400" cy="' + (floorY + 6) + '" rx="330" ry="9" fill="rgba(0,0,0,.1)"/>';
+
+    if (ws.wtype === 'builtin') {
+      svg += rect(x0 - 6, top - 6, x1 - x0 + 12, floorY - top + 6, '#e4ddd2');
+      if (ws.wdoors === 'hinged') {
+        var n = 6, dw = (x1 - x0) / n;
+        for (var i = 0; i < n; i++) svg += door(x0 + i * dw, top, dw, floorY - top - 14, c, { hingeLeft: i % 2 === 1, tall: true });
+        svg += rect(x0, floorY - 14, x1 - x0, 14, 'rgba(0,0,0,.3)');
+      } else {
+        var pn = 3, pw = (x1 - x0) / pn + 14;
+        for (var k = 0; k < pn; k++) {
+          var px = x0 + k * ((x1 - x0 - pw) / (pn - 1));
+          var fill = ws.wdoors === 'mirror' ? 'url(#mirror)' : c.fill;
+          svg += rect(px, top, pw, floorY - top, fill, ' stroke="' + trim + '" stroke-width="5"');
+          if (ws.wdoors === 'mirror') svg += '<path d="M' + (px + 30) + ' ' + (top + 40) + ' L' + (px + 90) + ' ' + (top + 160) + '" stroke="#fff" stroke-width="6" opacity=".6"/>';
+        }
+        svg += rect(x0, top - 6, x1 - x0, 6, trim) + rect(x0, floorY - 4, x1 - x0, 4, trim);
+      }
+    } else {
+      var bays = ws.internals === 'hanging' ? ['hang2', 'hang', 'shelf', 'hang', 'hang2'] :
+        ws.internals === 'drawers' ? ['shoes', 'drawers', 'hang', 'drawers', 'shoes'] :
+        ['hang2', 'shelf', 'drawers', 'hang', 'shoes'];
+      var bw = (x1 - x0) / bays.length, inner = '#f7f4ef';
+      svg += rect(x0 - 8, top - 8, x1 - x0 + 16, floorY - top + 8, c.fill, ' stroke="' + c.edge + '"');
+      bays.forEach(function (b, i) {
+        var bx = x0 + i * bw + 6, bwi = bw - 12, by = top + 6, bh = floorY - top - 20;
+        svg += rect(bx, by, bwi, bh, inner);
+        if (ws.light === 'on') svg += rect(bx, by, bwi, 60, 'url(#led)') + rect(bx, by, bwi, 3, '#ffe7b0');
+        svg += rect(bx, by + 34, bwi, 6, c.fill);
+        var clothes = ['#8d9aa8', '#d9c9b3', '#5d6a63', '#b88a7a', '#e8e3da', '#3f4650', '#a7b49c'];
+        function rail(ry, len) {
+          var out = rect(bx + 4, ry, bwi - 8, 3, trim);
+          for (var q = 0; q < Math.floor((bwi - 14) / 11); q++) out += rect(bx + 8 + q * 11, ry + 5, 8, len - (q % 3) * 12, clothes[(q + i) % clothes.length], ' rx="2"');
+          return out;
+        }
+        function drawers(dy, count) {
+          var out = '', dh = (by + bh - dy) / count;
+          for (var q = 0; q < count; q++) out += door(bx, dy + q * dh, bwi, dh - 2, c, { drawer: true });
+          return out;
+        }
+        if (b === 'hang') svg += rail(by + 56, 250);
+        if (b === 'hang2') svg += rail(by + 56, 130) + rect(bx, by + 205, bwi, 5, c.fill) + rail(by + 222, 140);
+        if (b === 'shelf') for (var sy = by + 90; sy < by + bh - 20; sy += 56) { svg += rect(bx, sy, bwi, 5, c.fill); svg += rect(bx + 10, sy - 22, bwi - 24, 22, ['#c8b9a3', '#e6ded1', '#9aa5ad'][Math.floor(sy) % 3], ' rx="2"'); }
+        if (b === 'drawers') { svg += rect(bx, by + 110, bwi, 5, c.fill) + rect(bx + 12, by + 80, bwi - 28, 30, '#d9cfc0', ' rx="2"'); svg += drawers(by + 160, 5); }
+        if (b === 'shoes') for (var hy = by + 70; hy < by + bh - 20; hy += 42) {
+          svg += '<path d="M' + bx + ' ' + (hy + 18) + ' L' + (bx + bwi) + ' ' + hy + '" stroke="' + (c.val === 'oak' || c.val === 'walnut' ? c.edge : c.fill) + '" stroke-width="5"/>';
+          svg += rect(bx + 14, hy - 4, 20, 9, '#3a3936', ' rx="4"') + rect(bx + 46, hy - 8, 20, 9, '#b88a7a', ' rx="4"');
+        }
+      });
+      svg += rect(x0, floorY - 14, x1 - x0, 14, 'rgba(0,0,0,.3)');
+    }
+    svg += '</svg>';
+    document.getElementById('designPreview').innerHTML = svg;
+    syncControls();
+  }
+
   function render() {
+    if (mode === 'wardrobe') return renderWardrobe();
     var base = find(CABINET, state.base);
     var upper = find(CABINET, state.upper);
     var bench = find(BENCH, state.bench);
@@ -175,8 +262,8 @@
     // pantry
     if (state.layout === 'pantry') {
       var px0 = 654, pw = 96;
-      svg += door(px0, upTop, pw / 2, kick - upTop - 14, upper, { hingeLeft: false });
-      svg += door(px0 + pw / 2, upTop, pw / 2, kick - upTop - 14, upper, { hingeLeft: true });
+      svg += door(px0, upTop, pw / 2, kick - upTop - 14, upper, { hingeLeft: false, tall: true });
+      svg += door(px0 + pw / 2, upTop, pw / 2, kick - upTop - 14, upper, { hingeLeft: true, tall: true });
       svg += rect(px0, kick - 14, pw, 14, 'rgba(0,0,0,.35)');
     }
 
@@ -200,9 +287,19 @@
     }
     svg += '</svg>';
     document.getElementById('designPreview').innerHTML = svg;
+    syncControls();
+  }
 
+  function syncControls() {
     document.getElementById('designSummary').textContent = summary();
     root.querySelectorAll('.opt-group').forEach(function (g) {
+      var only = g.dataset.only;
+      var show = g.dataset.mode === mode;
+      if (show && only) {
+        if (only === 'builtin' || only === 'walkin') show = ws.wtype === only;
+        else show = ws.wtype === 'builtin' && ws.wdoors === only;
+      }
+      g.hidden = !show;
       var key = g.dataset.opt;
       g.querySelectorAll('.opt').forEach(function (b) {
         var on = b.dataset.val === state[key];
@@ -213,12 +310,26 @@
   }
 
   function summary() {
+    if (mode === 'wardrobe') return wardrobeSummary();
     var base = find(CABINET, state.base).name, upper = find(CABINET, state.upper).name;
     var colours = base === upper ? base.toLowerCase() : base.toLowerCase() + ' base with ' + upper.toLowerCase() + ' overheads';
     var handles = state.door === 'fingerpull' ? 'fingerpull (no handles)' : find(HANDLE, state.handle).name.toLowerCase() + (state.handle === 'none' ? '' : ' handles');
     return LABELS.layout[state.layout] + ': ' + LABELS.door[state.door] + ' in ' + colours + ', ' +
       find(BENCH, state.bench).name.toLowerCase() + ' benchtop, ' + LABELS.splash[state.splash] + ', ' + handles + '.';
   }
+
+  root.querySelectorAll('[data-mode-tab]').forEach(function (t) {
+    t.addEventListener('click', function () {
+      mode = t.dataset.modeTab;
+      state = mode === 'kitchen' ? ks : ws;
+      root.querySelectorAll('[data-mode-tab]').forEach(function (x) {
+        var on = x === t;
+        x.classList.toggle('is-active', on);
+        x.setAttribute('aria-pressed', String(on));
+      });
+      render();
+    });
+  });
 
   root.addEventListener('click', function (e) {
     var b = e.target.closest('.opt');
@@ -230,6 +341,16 @@
 
   document.getElementById('designRandom').addEventListener('click', function () {
     function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+    if (mode === 'wardrobe') {
+      ws.wtype = pick(['builtin', 'walkin']);
+      ws.wdoors = pick(['hinged', 'slidingpanel', 'mirror']);
+      ws.door = pick(['flat', 'shaker', 'fingerpull']);
+      ws.finish = pick(CABINET).val;
+      ws.internals = pick(['balanced', 'hanging', 'drawers']);
+      ws.light = pick(['on', 'off']);
+      ws.handle = pick(HANDLE).val;
+      return render();
+    }
     state.layout = pick(['wall', 'island', 'pantry']);
     state.door = pick(['flat', 'shaker', 'fingerpull']);
     state.base = pick(CABINET).val;
@@ -248,7 +369,7 @@
     if (!form) return;
     var details = form.querySelector('#details');
     if (details && details.value.indexOf('My design:') === -1) details.value = text + (details.value ? '\n' + details.value : '');
-    var radio = form.querySelector('input[name=project][value="Kitchen"]');
+    var radio = form.querySelector('input[name=project][value="' + (mode === 'wardrobe' ? 'Wardrobes' : 'Kitchen') + '"]');
     if (radio) {
       radio.checked = true;
       radio.dispatchEvent(new Event('change', { bubbles: true }));
