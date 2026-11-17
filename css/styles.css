@@ -405,7 +405,8 @@ legend { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; margin-
 /* Netlify's free-plan "Powered by Netlify" badge (injected iframe): pin it to the very bottom of the page, under the footer's Privacy line, instead of floating */
 body { position: relative; }
 .site-footer { padding-bottom: 5rem; }
-#nl-badge-frame { position: absolute !important; top: auto !important; bottom: 10px !important; left: 50% !important; right: auto !important; transform: translateX(-50%) scale(.8) !important; transform-origin: bottom center !important; opacity: .8; }
+#nl-badge-frame { position: absolute !important; top: auto !important; bottom: 10px !important; left: 50% !important; right: auto !important; transform: translateX(-50%) scale(.8) !important; transform-origin: bottom center !important; opacity: .8; z-index: 800 !important; }
 @media (max-width: 640px) {
-  #nl-badge-frame { bottom: 82px !important; }
+  body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  #nl-badge-frame { bottom: calc(88px + env(safe-area-inset-bottom)) !important; }
 }
