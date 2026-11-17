@@ -29,7 +29,32 @@
       f.classList.toggle('is-active', on);
       f.setAttribute('aria-pressed', String(on));
     });
-    tiles.forEach(function (t) { t.hidden = !(cat === 'all' || t.dataset.cat === cat); });
+    currentCat = cat;
+    var limit = expanded ? Infinity : (window.innerWidth < 640 ? 6 : 9);
+    var shown = 0, total = 0;
+    tiles.forEach(function (t) {
+      var match = cat === 'all' || t.dataset.cat === cat;
+      if (match) total++;
+      t.hidden = !(match && shown < limit);
+      if (!t.hidden) shown++;
+    });
+    if (moreBtn) {
+      moreBtn.hidden = shown >= total;
+      moreBtn.textContent = 'Show ' + (total - shown) + ' more project' + (total - shown === 1 ? '' : 's');
+    }
+  }
+  var currentCat = 'all', expanded = false;
+  var moreBtn = document.getElementById('moreProjects');
+  if (moreBtn) {
+    moreBtn.addEventListener('click', function () {
+      var firstNew = null;
+      expanded = true;
+      var before = Array.prototype.filter.call(tiles, function (t) { return !t.hidden; });
+      applyFilter(currentCat);
+      tiles.forEach(function (t) { if (!t.hidden && before.indexOf(t) === -1 && !firstNew) firstNew = t; });
+      if (firstNew) firstNew.querySelector('.tile-btn').focus({ preventScroll: true });
+    });
+    applyFilter('all');
   }
   filters.forEach(function (f) { f.addEventListener('click', function () { applyFilter(f.dataset.filter); }); });
   document.querySelectorAll('[data-filter-link]').forEach(function (a) {
