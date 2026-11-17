@@ -402,8 +402,10 @@ legend { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; margin-
 .tile-btn img { aspect-ratio: 4 / 3; height: auto; object-fit: cover; }
 @media (max-width: 640px) { .gallery { grid-template-columns: repeat(2, 1fr); gap: .75rem; } }
 
-/* Netlify's free-plan "Powered by Netlify" badge (injected iframe): keep it small and clear of the mobile call/quote bar */
-#nl-badge-frame { transform: scale(.65) !important; transform-origin: bottom right !important; opacity: .85; }
+/* Netlify's free-plan "Powered by Netlify" badge (injected iframe): pin it to the very bottom of the page, under the footer's Privacy line, instead of floating */
+body { position: relative; }
+.site-footer { padding-bottom: 5rem; }
+#nl-badge-frame { position: absolute !important; top: auto !important; bottom: 10px !important; left: 50% !important; right: auto !important; transform: translateX(-50%) scale(.8) !important; transform-origin: bottom center !important; opacity: .8; }
 @media (max-width: 640px) {
-  #nl-badge-frame { bottom: calc(68px + env(safe-area-inset-bottom)) !important; transform: scale(.55) !important; }
+  #nl-badge-frame { bottom: 82px !important; }
 }
