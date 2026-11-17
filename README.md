@@ -4,7 +4,7 @@ Static site for Joinerycraft (custom kitchens, wardrobes and joinery, Chipping N
 
 ## Hosting
 
-Made for Netlify. Connect this repo in Netlify and every push to `main` deploys automatically. `netlify.toml` publishes the repo root.
+Hosted on Netlify (preview: https://frolicking-blancmange-71623f.netlify.app/). The repo is linked to that Netlify site, so every push to `main` deploys automatically. `netlify.toml` publishes the repo root.
 
 ## Quote form
 
