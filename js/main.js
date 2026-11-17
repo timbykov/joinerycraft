@@ -152,6 +152,12 @@
       });
     });
     go(0);
+
+    var qp = new URLSearchParams(location.search).get('project');
+    if (qp) {
+      var pre = form.querySelector('input[name=project][value="' + qp.replace(/"/g, '') + '"]');
+      if (pre) { pre.checked = true; go(1); }
+    }
   }
 
   /* Reveal on scroll */
