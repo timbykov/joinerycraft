@@ -339,6 +339,15 @@
                 <button type="button" class="opt opt-toggle" data-toggle="dishwasher">Dishwasher</button>
               </div>
             </div>
+            <div class="opt-group" data-mode="kitchen" data-adv>
+              <h3>Heights &amp; depths</h3>
+              <p class="opt-hint">Standard sizes are set for you. Change them to match your room.</p>
+              <label class="size-row"><span class="size-label">Ceiling height</span><input type="range" data-size="ceiling" min="2.4" max="3.0" step="0.01" aria-label="Ceiling height in metres"><span class="size-num"><input type="number" data-size-mm="ceiling" min="2400" max="3000" step="10" aria-label="Ceiling height in millimetres"> mm</span></label>
+              <label class="size-row"><span class="size-label">Bench height</span><input type="range" data-size="benchH" min="0.85" max="0.95" step="0.01" aria-label="Bench height in metres"><span class="size-num"><input type="number" data-size-mm="benchH" min="850" max="950" step="10" aria-label="Bench height in millimetres"> mm</span></label>
+              <label class="size-row"><span class="size-label">Base cupboard depth</span><input type="range" data-size="baseD" min="0.56" max="0.7" step="0.01" aria-label="Base cupboard depth in metres"><span class="size-num"><input type="number" data-size-mm="baseD" min="560" max="700" step="10" aria-label="Base cupboard depth in millimetres"> mm</span></label>
+              <label class="size-row" data-show="overheads=full"><span class="size-label">Overhead depth</span><input type="range" data-size="upD" min="0.3" max="0.4" step="0.01" aria-label="Overhead depth in metres"><span class="size-num"><input type="number" data-size-mm="upD" min="300" max="400" step="10" aria-label="Overhead depth in millimetres"> mm</span></label>
+              <label class="size-row" data-show="fridge=on"><span class="size-label">Fridge space width</span><input type="range" data-size="fridgeW" min="0.7" max="1.0" step="0.01" aria-label="Fridge space width in metres"><span class="size-num"><input type="number" data-size-mm="fridgeW" min="700" max="1000" step="10" aria-label="Fridge space width in millimetres"> mm</span></label>
+            </div>
             <div class="opt-group" data-opt="overheads" data-mode="kitchen" data-adv>
               <h3>Overheads</h3>
               <div class="opt-row">
@@ -379,6 +388,7 @@
               <h3>Size</h3>
               <label class="size-row" data-show="wtype=builtin"><span class="size-label">Width</span><input type="range" data-size="width" min="0.9" max="4.8" step="0.1" aria-label="Width in metres"><span class="size-num"><input type="number" data-size-mm="width" min="900" max="4800" step="10" aria-label="Width in millimetres"> mm</span></label>
               <label class="size-row" data-show="wtype=builtin"><span class="size-label">Height</span><input type="range" data-size="height" min="2.1" max="2.7" step="0.1" aria-label="Height in metres"><span class="size-num"><input type="number" data-size-mm="height" min="2100" max="2700" step="10" aria-label="Height in millimetres"> mm</span></label>
+              <label class="size-row"><span class="size-label">Depth</span><input type="range" data-size="wdepth" min="0.45" max="0.7" step="0.01" aria-label="Depth in metres"><span class="size-num"><input type="number" data-size-mm="wdepth" min="450" max="700" step="10" aria-label="Depth in millimetres"> mm</span></label>
               <label class="size-row" data-show="wtype=walkin"><span class="size-label">Back wall</span><input type="range" data-size="wwidth" min="1.8" max="4.0" step="0.1" aria-label="Back wall in metres"><span class="size-num"><input type="number" data-size-mm="wwidth" min="1800" max="4000" step="10" aria-label="Back wall in millimetres"> mm</span></label>
               <label class="size-row" data-show="wtype=walkin;wshape=l,u"><span class="size-label">Side walls</span><input type="range" data-size="wside" min="1.0" max="3.0" step="0.1" aria-label="Side walls in metres"><span class="size-num"><input type="number" data-size-mm="wside" min="1000" max="3000" step="10" aria-label="Side walls in millimetres"> mm</span></label>
             </div>
@@ -422,6 +432,14 @@
             <div class="designer-actions">
               <a href="#quote" class="btn btn-accent" id="designSend">Get a quote for this design</a>
               <button type="button" class="btn btn-text" id="designRandom">Surprise me</button>
+            </div>
+            <div class="design-save" id="designSave">
+              <div class="design-save-btns">
+                <button type="button" class="btn btn-outline btn-sm" data-save="copy">Save &amp; copy link</button>
+                <button type="button" class="btn btn-outline btn-sm" data-save="share" hidden>Share</button>
+              </div>
+              <p class="save-note">Your design saves automatically on this device. Save a link to open it anywhere.</p>
+              <input class="save-link" type="text" readonly hidden aria-label="Link to your design">
             </div>
             <p class="designer-measure">Not sure of your sizes? <a href="measure.html">How to measure your kitchen or wardrobe</a></p>
             <div class="designer-export">
@@ -833,6 +851,7 @@
           <input type="hidden" name="form-name" value="quote">
           <input type="hidden" name="design" id="designField" value="">
           <input type="hidden" name="cabinet_list" id="cabinetListField" value="">
+          <input type="hidden" name="design_link" id="designLinkField" value="">
           <p class="hp"><label>Leave this empty <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
 
           <div class="form-progress" aria-hidden="true">

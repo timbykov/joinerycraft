@@ -6,6 +6,23 @@
   'use strict';
 
   var KICK = 0.15, BASE_TOP = 0.87, BENCH_T = 0.04, BASE_D = 0.58, UP_BOT = 1.5, UP_TOP = 2.2, UP_D = 0.34, TALL_TOP = 2.2;
+  var CEIL = 2.7, FRIDGE_W = 0.92, W_D = 0.6;
+  var DIMS = {};
+  /* heights and depths the customer can change (Customise > Heights & depths) */
+  function setDims(mode, s) {
+    var c = function (v, d, lo, hi) { v = +v || d; return Math.min(hi, Math.max(lo, v)); };
+    if (mode === 'wardrobe') { W_D = c(s.wdepth, 0.6, 0.45, 0.7); }
+    else {
+      BASE_TOP = c(s.benchH, 0.91, 0.85, 0.95) - BENCH_T;
+      BASE_D = c(s.baseD, 0.6, 0.56, 0.7) - 0.02;
+      UP_D = c(s.upD, 0.34, 0.3, 0.4);
+      CEIL = c(s.ceiling, 2.7, 2.4, 3.0);
+      FRIDGE_W = c(s.fridgeW, 0.92, 0.7, 1.0);
+    }
+    DIMS.KICK = KICK; DIMS.BASE_TOP = BASE_TOP; DIMS.BENCH_T = BENCH_T; DIMS.BASE_D = BASE_D; DIMS.UP_BOT = UP_BOT; DIMS.UP_TOP = UP_TOP;
+    DIMS.UP_D = UP_D; DIMS.TALL_TOP = TALL_TOP; DIMS.CEIL = CEIL; DIMS.FRIDGE_W = FRIDGE_W; DIMS.W_D = W_D;
+    return { benchH: BASE_TOP + BENCH_T, baseD: BASE_D + 0.02, upD: UP_D, ceiling: CEIL, fridgeW: FRIDGE_W, wdepth: W_D };
+  }
   var SECTION = { hang: 'Long hanging', hang2: 'Double hanging', shelf: 'Shelves', drawers: 'Drawers + shelves', shoes: 'Shoe shelves' };
   var MIX = {
     balanced: ['hang2', 'shelf', 'drawers', 'hang', 'shoes'],
@@ -85,7 +102,7 @@
     var RET = BASE_D + 0.02; // a side run starts in front of the back run
     var talls = [];
     if (s.pantry === 'on') talls.push({ w: 0.9, kind: 'pantry' });
-    if (s.fridge === 'on') talls.push({ w: 0.92, kind: 'fridge' });
+    if (s.fridge === 'on') talls.push({ w: FRIDGE_W, kind: 'fridge' });
     var tallW = talls.reduce(function (a, t) { return a + t.w; }, 0);
     // in a U kitchen the tall cupboards go at the open end of the right wall, so they don't block the corner
     var tallsOnRight = shape === 'u' && S - tallW >= 0.55;
@@ -208,12 +225,16 @@
   }
 
   function build(mode, s) {
-    if (mode === 'wardrobe') return s.wtype === 'walkin' ? walkin(s) : builtin(s);
-    return kitchen(s);
+    var ds = setDims(mode, s);
+    var m = mode === 'wardrobe' ? (s.wtype === 'walkin' ? walkin(s) : builtin(s)) : kitchen(s);
+    m.sizes = m.sizes || {};
+    Object.keys(ds).forEach(function (k) { if (m.sizes[k] === undefined) m.sizes[k] = ds[k]; });
+    return m;
   }
+  setDims('kitchen', {}); setDims('wardrobe', {});
 
   window.JCLayout = {
     build: build, SECTION: SECTION, MIX: MIX, fit: fit,
-    dims: { KICK: KICK, BASE_TOP: BASE_TOP, BENCH_T: BENCH_T, BASE_D: BASE_D, UP_BOT: UP_BOT, UP_TOP: UP_TOP, UP_D: UP_D, TALL_TOP: TALL_TOP }
+    dims: DIMS
   };
 })();

@@ -243,8 +243,12 @@
   }
 
   /* ---------- kitchen ---------- */
-  var DM = window.JCLayout.dims, KICK = DM.KICK, BASE_TOP = DM.BASE_TOP, BENCH_T = DM.BENCH_T, UP_BOT = DM.UP_BOT, UP_TOP = DM.UP_TOP, UP_D = DM.UP_D, TALL_TOP = DM.TALL_TOP;
-  var CEIL = 2.7, D0 = 0.56;
+  var DM = window.JCLayout.dims, KICK, BASE_TOP, BENCH_T, UP_BOT, UP_TOP, UP_D, TALL_TOP, CEIL, D0, BD, WD;
+  function readDims() {
+    KICK = DM.KICK; BASE_TOP = DM.BASE_TOP; BENCH_T = DM.BENCH_T; UP_BOT = DM.UP_BOT; UP_TOP = DM.UP_TOP; UP_D = DM.UP_D; TALL_TOP = DM.TALL_TOP;
+    CEIL = DM.CEIL || 2.7; D0 = DM.BASE_D - 0.02; BD = DM.BASE_D + 0.04; WD = DM.W_D || 0.6;
+  }
+  readDims();
 
   function tap(parent, x, z, bTop, hd) {
     var tapM = hd === 'brass' ? handleMat('brass') : hd === 'steel' ? handleMat('steel') : handleMat('black');
@@ -317,6 +321,7 @@
   }
 
   function buildKitchen(s) {
+    readDims();
     var m = D.model();
     room(m.room.w, m.room.d, CEIL, m.room.sideWalls);
     var c = { baseM: cabinetMat(s.base), upM: cabinetMat(s.upper), bM: benchMat(s.bench), hd: s.handle, st: s.door };
@@ -328,7 +333,7 @@
       g.rotation.y = r.rot;
       world.add(g);
       r.items.forEach(function (it, i) { kitchenItem(g, it, i, c); });
-      if (r.bench) box(g, r.bench[0], BASE_TOP, 0, r.bench[1] - r.bench[0], BENCH_T, 0.62, c.bM);
+      if (r.bench) box(g, r.bench[0], BASE_TOP, 0, r.bench[1] - r.bench[0], BENCH_T, BD, c.bM);
       if (r.splash) {
         var sw = r.splash[1] - r.splash[0], sm;
         if (s.splash === 'subway') {
@@ -397,7 +402,8 @@
   /* ---------- wardrobes ---------- */
   function buildBuiltin(s) {
     var m = D.model(), run = m.runs[0];
-    var W = run.len, H = m.height, Dp = 0.6, x0 = -W / 2, open = s.showInside === 'on';
+    readDims();
+    var W = run.len, H = m.height, Dp = WD, x0 = -W / 2, open = s.showInside === 'on';
     room(Math.max(6, W + 2), 4, CEIL, false);
     var cm = cabinetMat(s.finish), hd = s.handle;
     var trimM = hd === 'none' ? handleMat('none') : handleMat(hd);
@@ -441,7 +447,7 @@
   }
 
   function bays(parent, length, list, cm, s, H, light, inset) {
-    var Dp = 0.6, dz = Dp - (inset || 0.02), bw = length / list.length, gt = 0.018, f = H / 2.4;
+    var Dp = WD, dz = Dp - (inset || 0.02), bw = length / list.length, gt = 0.018, f = H / 2.4;
     var trimM = s.handle === 'none' ? handleMat('none') : handleMat(s.handle);
     box(parent, 0, 0, 0, length, H, 0.012, M.inner); // back
     box(parent, 0, H - gt, 0, length, gt, Dp, cm);    // top
@@ -483,13 +489,14 @@
   }
 
   function buildWalkin(s) {
+    readDims();
     var m = D.model(), H = m.height;
     room(m.room.w, m.room.d, CEIL, m.room.sideWalls);
     var cm = cabinetMat(s.finish);
     m.runs.forEach(function (r) {
       var g = new T.Group();
       bays(g, r.len, r.sections, cm, s, H, s.light === 'on');
-      box(g, 0, H, 0, r.len, CEIL - H, 0.6, M.ceiling);
+      box(g, 0, H, 0, r.len, CEIL - H, WD, M.ceiling);
       g.rotation.y = r.rot;
       g.position.set(r.pos[0], 0, r.pos[1]);
       world.add(g);

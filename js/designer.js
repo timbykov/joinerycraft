@@ -399,6 +399,7 @@
     document.getElementById('designPreview').innerHTML = svg;
     syncControls();
     schedule3D();
+    if (typeof autosave === 'function') autosave();
   }
   var pending3d = 0;
   function schedule3D() {
@@ -566,6 +567,18 @@
   }
 
   function summary() {
+    var t = summaryCore(), D2 = L.dims, x = [];
+    if (mode === 'wardrobe') { if (Math.abs(D2.W_D - 0.6) > 0.005) x.push(mm(D2.W_D) + ' mm deep'); }
+    else {
+      if (Math.abs(D2.CEIL - 2.7) > 0.005) x.push(mm(D2.CEIL) + ' mm ceiling');
+      if (Math.abs(D2.BASE_TOP + D2.BENCH_T - 0.91) > 0.005) x.push(mm(D2.BASE_TOP + D2.BENCH_T) + ' mm bench height');
+      if (Math.abs(D2.BASE_D - 0.58) > 0.005) x.push(mm(D2.BASE_D + 0.02) + ' mm deep base cupboards');
+      if (Math.abs(D2.UP_D - 0.34) > 0.005 && state.overheads === 'full') x.push(mm(D2.UP_D) + ' mm deep overheads');
+      if (Math.abs(D2.FRIDGE_W - 0.92) > 0.005 && state.fridge === 'on') x.push(mm(D2.FRIDGE_W) + ' mm fridge space');
+    }
+    return x.length ? t.replace(/\.$/, '') + '. Custom sizes: ' + x.join(', ') + '.' : t;
+  }
+  function summaryCore() {
     if (!model) build();
     if (mode === 'wardrobe') return wardrobeSummary();
     var m = model;
@@ -693,6 +706,8 @@
     var text = 'My design: ' + summary();
     var field = document.getElementById('designField');
     if (field) field.value = text;
+    var linkF = document.getElementById('designLinkField');
+    if (linkF) linkF.value = designLink();
     var list = document.getElementById('cabinetListField');
     if (list && window.JCExport) list.value = window.JCExport.csv();
     var form = document.getElementById('quoteForm');
@@ -771,6 +786,63 @@
   });
 
   window.JCDesigner.setView = setView;
+  /* ---------- saving: auto-save on this device + a link that reopens the design anywhere ---------- */
+  var SAVE_KEY = 'jc-design-v1';
+  function snapshot() { return { v: 1, mode: mode, k: ks, w: ws }; }
+  function enc(o) { return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function dec(t) { t = t.replace(/-/g, '+').replace(/_/g, '/'); while (t.length % 4) t += '='; return JSON.parse(decodeURIComponent(escape(atob(t)))); }
+  function designLink() { return location.origin + '/?d=' + enc(snapshot()) + '#design'; }
+  function restore(o) {
+    if (!o || o.v !== 1) return false;
+    if (o.k) Object.keys(o.k).forEach(function (k) { if (k in ks || /^(benchH|baseD|upD|ceiling|fridgeW)$/.test(k)) ks[k] = o.k[k]; });
+    if (o.w) Object.keys(o.w).forEach(function (k) { if (k in ws || k === 'wdepth') ws[k] = o.w[k]; });
+    if (o.mode === 'wardrobe' || o.mode === 'kitchen') {
+      var tab = root.querySelector('[data-mode-tab="' + o.mode + '"]');
+      if (tab && o.mode !== mode) tab.click();
+    }
+    return true;
+  }
+  var saveTimer = 0, restoredFrom = '';
+  function autosave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () { try { localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot())); } catch (e) {} }, 400);
+  }
+  window.JCDesigner.link = designLink;
+  var qs = new URLSearchParams(location.search);
+  if (qs.get('d')) { try { if (restore(dec(qs.get('d')))) restoredFrom = 'link'; } catch (e) {} }
+  else if (!qs.get('look') && !qs.get('design')) {
+    try { if (restore(JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'))) restoredFrom = 'device'; } catch (e) {}
+  }
+  var saveBar = document.getElementById('designSave');
+  if (saveBar) {
+    var note = saveBar.querySelector('.save-note');
+    if (restoredFrom === 'device') note.innerHTML = 'Welcome back. We reopened your last design. <button type="button" class="btn-link" data-save="fresh">Start fresh</button>';
+    else if (restoredFrom === 'link') note.textContent = 'Opened a saved design. Any changes save on this device.';
+    saveBar.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-save]');
+      if (!b) return;
+      if (b.dataset.save === 'fresh') {
+        try { localStorage.removeItem(SAVE_KEY); } catch (er) {}
+        location.href = location.pathname + '#design';
+        location.reload();
+        return;
+      }
+      var url = designLink(), done = function (msg) { note.textContent = msg; };
+      if (b.dataset.save === 'share' && navigator.share) {
+        navigator.share({ title: 'My Joinerycraft design', text: summary(), url: url }).catch(function () {});
+        return;
+      }
+      var fallback = function () {
+        var inp = saveBar.querySelector('.save-link');
+        inp.hidden = false; inp.value = url; inp.focus(); inp.select();
+        done('Copy this link and keep it, or send it to yourself.');
+      };
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(url).then(function () { done('Link copied. Bookmark it, or paste it into a message to yourself, to come back to this design.'); }, fallback);
+      else fallback();
+    });
+    if (navigator.share) { var sb = saveBar.querySelector('[data-save="share"]'); if (sb) sb.hidden = false; }
+  }
+
   /* deep link: ?design=wardrobe opens the wardrobe tab */
   var want = new URLSearchParams(location.search).get('design');
   var wantTab = want && root.querySelector('[data-mode-tab="' + want.replace(/[^a-z]/g, '') + '"]');

@@ -14,7 +14,8 @@
   var r = Math.round;
 
   var DIM = window.JCLayout.dims, SEC = window.JCLayout.SECTION;
-  var BASE_H = (DIM.BASE_TOP - DIM.KICK) * 1000, UP_H = (DIM.UP_TOP - DIM.UP_BOT) * 1000, TALL_H = (DIM.TALL_TOP - DIM.KICK) * 1000;
+  var BASE_H, UP_H, TALL_H;
+  function heights() { BASE_H = (DIM.BASE_TOP - DIM.KICK) * 1000; UP_H = (DIM.UP_TOP - DIM.UP_BOT) * 1000; TALL_H = (DIM.TALL_TOP - DIM.KICK) * 1000; }
   var BASE_DESC = {
     door: function (w) { return w > 650 ? '2 door base' : '1 door base'; },
     drawers: function () { return '3 drawer base'; },
@@ -40,9 +41,9 @@
         var w = it.w * 1000;
         if (it.t === 'base') {
           kick += w;
-          add(loc, 'Base', BASE_DESC[it.kind](w), w, BASE_H, 560, 1, base,
+          add(loc, 'Base', BASE_DESC[it.kind](w), w, BASE_H, r(DIM.BASE_D * 1000 - 20), 1, base,
             { oven: 'Under cooktop', sink: 'Sink and tap above', dw: '600 mm dishwasher by others', corner: 'Blind corner, ' + (it.side === 'L' ? 'left' : 'right') + ' end' }[it.kind] || '');
-        } else if (it.t === 'upper') add(loc, 'Wall', '1 door wall cabinet', w, UP_H, 340, 1, up, '');
+        } else if (it.t === 'upper') add(loc, 'Wall', '1 door wall cabinet', w, UP_H, r(DIM.UP_D * 1000), 1, up, '');
         else if (it.t === 'shelf') add(loc, 'Wall', 'Open shelves x 2', w, 35, 260, 2, up, 'Floating shelves at 1620 and 1980 mm');
         else if (it.t === 'hood') add(loc, 'Wall', 'Rangehood canopy', w, 420, 420, 1, up, 'Rangehood insert by others');
         else if (it.t === 'tall' && it.kind === 'pantry') { kick += w; add(loc, 'Tall', '2 door pantry', w, TALL_H, 600, 1, up, ''); }
@@ -84,10 +85,10 @@
         var doors = run.items.filter(function (it) { return it.t === 'door'; });
         bays.forEach(function (b, i) {
           var nd = doors.filter(function (d) { return d.x >= b.x - 0.001 && d.x < b.x + b.w - 0.001; }).length;
-          add('Wall', 'Tall', nd + ' door robe: ' + SEC[b.kind].toLowerCase(), b.w * 1000, H, 600, 1, 'Section ' + (i + 1) + ', on 80 mm kick. ' + drawerNote(b.kind), DOOR[s.door], s.door === 'fingerpull' ? 'Fingerpull' : hd);
+          add('Wall', 'Tall', nd + ' door robe: ' + SEC[b.kind].toLowerCase(), b.w * 1000, H, r(DIM.W_D * 1000), 1, 'Section ' + (i + 1) + ', on 80 mm kick. ' + drawerNote(b.kind), DOOR[s.door], s.door === 'fingerpull' ? 'Fingerpull' : hd);
         });
       } else {
-        bays.forEach(function (b, i) { add('Wall', 'Robe carcass', 'Robe section: ' + SEC[b.kind].toLowerCase(), b.w * 1000, H, 600, 1, 'Section ' + (i + 1) + '. ' + drawerNote(b.kind)); });
+        bays.forEach(function (b, i) { add('Wall', 'Robe carcass', 'Robe section: ' + SEC[b.kind].toLowerCase(), b.w * 1000, H, r(DIM.W_D * 1000), 1, 'Section ' + (i + 1) + '. ' + drawerNote(b.kind)); });
         var sl = run.items.filter(function (it) { return it.t === 'slide'; });
         add('Wall', 'Sliding door', s.wdoors === 'mirror' ? 'Sliding mirror door' : 'Sliding door, board panel', sl[0].w * 1000, H - 60, 0, sl.length, (s.handle === 'none' ? 'Aluminium' : hd) + ' frames, top and bottom tracks ' + r(m.sizes.width * 1000) + ' mm', s.wdoors === 'mirror' ? 'Mirror' : 'Board panel', '');
       }
@@ -96,7 +97,7 @@
     m.runs.forEach(function (run) {
       run.items.forEach(function (b, i) {
         var dr = b.kind === 'drawers';
-        add(run.label, 'Open bay', SEC[b.kind], b.w * 1000, m.height * 1000, 600, 1, 'Section ' + (i + 1) + (dr ? '. ' + drawerNote(b.kind) : ''), dr ? 'Flat panel' : '', dr ? hd : '');
+        add(run.label, 'Open bay', SEC[b.kind], b.w * 1000, m.height * 1000, r(DIM.W_D * 1000), 1, 'Section ' + (i + 1) + (dr ? '. ' + drawerNote(b.kind) : ''), dr ? 'Flat panel' : '', dr ? hd : '');
       });
     });
     if (s.light === 'on') rows.push({ location: 'All', type: 'Lighting', description: 'LED strip lighting under top panels', width: 0, height: 0, depth: 0, qty: 1, door: '', brand: '', colour: '', handles: '', notes: 'Electrician by others' });
@@ -104,6 +105,7 @@
   }
 
   function rows() {
+    heights();
     return D.mode === 'wardrobe' ? wardrobeRows(D.state) : kitchenRows(D.state);
   }
 

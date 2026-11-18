@@ -687,3 +687,11 @@ body.d3-locked { overflow: hidden; }
 }
 @media (max-width: 520px) { .style-photos { grid-template-columns: 1fr; } }
 .type-sub { font-size: 1.15rem; margin-top: 2rem; }
+
+/* Save design */
+.design-save { margin: 1rem 0 .25rem; padding: .9rem 1rem; border: 1px dashed var(--line); border-radius: var(--radius); background: var(--white); }
+.design-save-btns { display: flex; gap: .5rem; flex-wrap: wrap; }
+.btn-sm { padding: .5rem 1rem; font-size: .88rem; }
+.save-note { margin: .55rem 0 0; font-size: .85rem; color: var(--muted); }
+.save-note .btn-link { font-size: inherit; }
+.save-link { width: 100%; margin-top: .5rem; font-size: .8rem; padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 6px; }
