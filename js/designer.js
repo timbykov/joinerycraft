@@ -59,14 +59,14 @@
     { val: 'sage', name: 'Soft sage', fill: '#c8cfbe' },
     { val: 'blue', name: 'Pale blue', fill: '#cdd7dc' },
     { val: 'charcoal', name: 'Charcoal', fill: '#55534f' },
-    { val: 'tile-white', name: 'White tiles', fill: '#f4f4f1', tile: true }
+    { val: 'tile-white', name: 'White tiles', fill: '#ffffff', tile: true }
   ];
   var FLOORS = [
     { val: 'oak-light', name: 'Light oak timber', fill: '#d8c3a2', kind: 'timber' },
     { val: 'oak-mid', name: 'Mid oak timber', fill: '#b68c60', kind: 'timber' },
     { val: 'walnut', name: 'Dark timber', fill: '#6f5038', kind: 'timber' },
     { val: 'stone', name: 'Beige stone tiles', fill: '#d6c8b3', kind: 'tile' },
-    { val: 'tile-white', name: 'White tiles', fill: '#ecebe7', kind: 'tile' },
+    { val: 'tile-white', name: 'White tiles', fill: '#fbfbf9', kind: 'tile' },
     { val: 'tile-grey', name: 'Grey tiles', fill: '#b6b4af', kind: 'tile' },
     { val: 'concrete', name: 'Polished concrete', fill: '#a9a7a2', kind: 'concrete' }
   ];

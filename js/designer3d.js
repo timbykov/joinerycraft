@@ -233,12 +233,13 @@
       if (!w.tile) return std(w.fill, 0.95);
       var t = canvasTex(256, 256, function (g, cw, ch) {
         g.fillStyle = w.fill; g.fillRect(0, 0, cw, ch);
-        g.strokeStyle = '#d9d7d1'; g.lineWidth = 3;
+        g.strokeStyle = '#d8d5cf'; g.lineWidth = 2.5;
         for (var i = 0; i <= 2; i++) { g.beginPath(); g.moveTo(0, i * 128); g.lineTo(cw, i * 128); g.stroke(); g.beginPath(); g.moveTo(i * 128, 0); g.lineTo(i * 128, ch); g.stroke(); }
       });
       t.wrapS = t.wrapT = T.RepeatWrapping;
       t.repeat.set(14 / 0.6, 4);
-      return std(0xffffff, 0.35, 0, { map: t });
+      // a little self-light so white tiles read as white, not grey, under the room lighting
+      return std(0xffffff, 0.35, 0, { map: t, emissive: '#ffffff', emissiveIntensity: 0.1 });
     });
     M.sidewall = mat('side-' + w.val, function () {
       if (!w.tile) return std(shade(w.fill, 0.96), 0.95);
@@ -266,7 +267,7 @@
             g.beginPath(); g.moveTo(off, r * 64); g.lineTo(off, r * 64 + 64); g.stroke();
           }
         } else if (f.kind === 'tile') {
-          g.strokeStyle = 'rgba(0,0,0,.10)'; g.lineWidth = 3;
+          g.strokeStyle = f.val === 'tile-white' ? 'rgba(0,0,0,.13)' : 'rgba(0,0,0,.10)'; g.lineWidth = 3;
           for (var i = 0; i <= 4; i++) { g.beginPath(); g.moveTo(0, i * 128); g.lineTo(cw, i * 128); g.stroke(); g.beginPath(); g.moveTo(i * 128, 0); g.lineTo(i * 128, ch); g.stroke(); }
         } else {
           for (var n = 0; n < 1400; n++) { g.fillStyle = 'rgba(' + (Math.random() < 0.5 ? '0,0,0' : '255,255,255') + ',' + (0.03 + Math.random() * 0.05) + ')'; g.fillRect(Math.random() * cw, Math.random() * ch, 3 + Math.random() * 6, 2 + Math.random() * 4); }
@@ -274,7 +275,9 @@
       });
       t.wrapS = t.wrapT = T.RepeatWrapping;
       t.repeat.set(7, 7);
-      return std(0xffffff, f.kind === 'concrete' ? 0.55 : 0.75, 0, { map: t });
+      var light = f.val === 'tile-white' ? { emissive: '#ffffff', emissiveIntensity: 0.05 } : {};
+      light.map = t;
+      return std(0xffffff, f.kind === 'concrete' ? 0.55 : f.val === 'tile-white' ? 0.4 : 0.75, 0, light);
     });
   }
 
