@@ -774,3 +774,19 @@ body.d3-locked { overflow: hidden; }
   .footer-bottom { padding-top: 1.25rem; }
 }
 .footer-bottom .footer-privacy { margin-left: .6rem; white-space: nowrap; }
+
+/* "Start again": red so it reads as the one that clears things, with its own confirm box */
+.btn-danger { background: transparent; color: #b42318; border: 1.5px solid #e7b4ae; }
+.btn-danger:hover, .btn-danger:focus-visible { background: #fdf0ee; border-color: #b42318; color: #b42318; }
+.btn-danger-solid { background: #b42318; color: #fff; border: 1.5px solid #b42318; }
+.btn-danger-solid:hover, .btn-danger-solid:focus-visible { background: #8f1c13; border-color: #8f1c13; color: #fff; }
+.jc-modal form { padding: 1.75rem 1.5rem 1.5rem; }
+.jc-modal { border: 0; border-radius: 14px; padding: 0; width: min(420px, calc(100vw - 2rem)); background: var(--white, #fff); color: var(--ink); box-shadow: 0 24px 60px rgba(0,0,0,.25); text-align: center; }
+.jc-modal::backdrop { background: rgba(20,18,15,.55); }
+.jc-modal[open] { animation: jcPop .16s ease-out; }
+@keyframes jcPop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+.jc-modal-icon { width: 52px; height: 52px; margin: 0 auto .9rem; border-radius: 50%; background: #fdf0ee; color: #b42318; display: grid; place-items: center; }
+.jc-modal h3 { font-family: var(--serif); font-weight: 400; font-size: 1.45rem; margin: 0 0 .5rem; }
+.jc-modal p { margin: 0 0 1.4rem; color: var(--muted); font-size: .95rem; line-height: 1.55; }
+.jc-modal-btns { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
+.jc-modal-btns .btn { flex: 1 1 150px; }

@@ -1077,13 +1077,23 @@
     saveBar.addEventListener('click', function (e) {
       var b = e.target.closest('[data-save]');
       if (!b) return;
-      if (b.dataset.save === 'restart' && !window.confirm('Start a new design? This clears the design saved on this device. Any links you saved will still open it.')) return;
-      if (b.dataset.save === 'fresh' || b.dataset.save === 'restart') {
+      function startOver() {
         try { localStorage.removeItem(SAVE_KEY); } catch (er) {}
         location.href = location.pathname + '#design';
         location.reload();
+      }
+      if (b.dataset.save === 'restart') {
+        var dlg = document.getElementById('restartDialog');
+        if (dlg && typeof dlg.showModal === 'function') {
+          dlg.returnValue = '';
+          dlg.onclose = function () { if (dlg.returnValue === 'restart') startOver(); };
+          dlg.onclick = function (ev) { if (ev.target === dlg) dlg.close('keep'); }; // tap outside to cancel
+          dlg.showModal();
+          var keep = dlg.querySelector('[value="keep"]'); if (keep) keep.focus();
+        } else if (window.confirm('Start a new design? This clears the design saved on this device. Any links you saved will still open it.')) startOver();
         return;
       }
+      if (b.dataset.save === 'fresh') { startOver(); return; }
       var url = designLink(), done = function (msg) { note.textContent = msg; note.classList.add('show'); };
       if (b.dataset.save === 'share' && navigator.share) {
         navigator.share({ title: 'My Joinerycraft design', text: summary(), url: url }).catch(function () {});

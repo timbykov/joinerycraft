@@ -541,11 +541,22 @@
                 <a href="#quote" class="btn btn-accent" id="designSend">Get a quote for this design</a>
                 <button type="button" class="btn btn-text" id="designRandom">Surprise me</button>
               </div>
+              <dialog class="jc-modal" id="restartDialog" aria-labelledby="restartTitle">
+                <form method="dialog">
+                  <div class="jc-modal-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                  <h3 id="restartTitle">Start a new design?</h3>
+                  <p>This clears the design saved on this device and takes you back to the start. Any link you saved, or sent with a quote, will still open it.</p>
+                  <div class="jc-modal-btns">
+                    <button type="submit" value="keep" class="btn btn-outline">Keep my design</button>
+                    <button type="submit" value="restart" class="btn btn-danger-solid">Yes, start again</button>
+                  </div>
+                </form>
+              </dialog>
               <div class="design-save" id="designSave">
                 <div class="design-save-btns">
                   <button type="button" class="btn btn-outline btn-sm" data-save="copy">Save &amp; copy link</button>
                   <button type="button" class="btn btn-outline btn-sm" data-save="share" hidden>Share</button>
-                  <button type="button" class="btn btn-text btn-sm" data-save="restart">Start again</button>
+                  <button type="button" class="btn btn-danger btn-sm" data-save="restart">Start again</button>
                 </div>
                 <p class="save-note">Your design saves automatically on this device. Save a link to open it anywhere.</p>
                 <input class="save-link" type="text" readonly hidden aria-label="Link to your design">
