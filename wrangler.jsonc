@@ -1,9 +1,20 @@
 {
-  // Cloudflare Workers static site. Everything in the repo root is served as-is.
+  // Cloudflare Worker: serves the static site from the repo root, and runs worker.js for /api/*
+  // (the quote email). See worker.js for how sending is switched on.
   "name": "joinerycraft",
+  "main": "worker.js",
   "compatibility_date": "2026-11-01",
+  "keep_vars": true,
   "assets": {
     "directory": ".",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    // Inbox(es) that receive quote requests, comma separated. Set it in the Cloudflare dashboard
+    // (Settings > Variables) so it isn't in the public repo. Sending also needs RESEND_API_KEY
+    // (a secret) or a send_email binding called EMAIL.
+    "QUOTE_FROM": "quotes@joinerycraft.com.au"
   }
 }

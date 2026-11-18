@@ -916,12 +916,15 @@
       att.querySelector('.design-attached-remove').onclick = function () {
         att.hidden = true;
         ['designField', 'designLinkField', 'designDetailsField', 'cabinetListField'].forEach(function (id) { var f = document.getElementById(id); if (f) f.value = ''; });
+        window.JCQuoteModel = null;
         var dt = document.getElementById('details');
         if (dt) dt.value = dt.value.replace(/^My design:.*(\n|$)/, '');
       };
     }
     var list = document.getElementById('cabinetListField');
     if (list && window.JCExport) list.value = window.JCExport.csv();
+    /* the 3D model of the design as sent, for attaching to the quote email (made in the background) */
+    window.JCQuoteModel = window.JCExport && window.JCExport.glbBase64 ? { mode: mode, glb: window.JCExport.glbBase64().catch(function () { return ''; }) } : null;
     var form = document.getElementById('quoteForm');
     if (!form) return;
     var radio = form.querySelector('input[name=project][value="' + { kitchen: 'Kitchen', wardrobe: 'Wardrobes', laundry: 'Laundry', vanity: 'Vanity / bathroom' }[mode] + '"]');

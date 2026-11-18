@@ -157,21 +157,34 @@
       document.head.appendChild(s);
     });
   }
-  function glb(btn) {
-    var label = btn.textContent;
-    btn.textContent = 'Preparing 3D model…';
-    btn.disabled = true;
-    function done() { btn.textContent = label; btn.disabled = false; }
-    D.ensure3D().then(function () {
+  /* Resolves with the 3D model as a binary .glb ArrayBuffer. */
+  function glbBuffer() {
+    return D.ensure3D().then(function () {
       if (window.THREE.GLTFExporter) return;
       return loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js');
     }).then(function () {
       window.JC3D.update();
       var obj = window.JC3D.model();
-      new window.THREE.GLTFExporter().parse(obj, function (result) {
-        save(new Blob([result], { type: 'model/gltf-binary' }), 'joinerycraft-' + D.mode + '-' + stamp() + '.glb');
-        done();
-      }, { binary: true, onlyVisible: true, maxTextureSize: 512 });
+      return new Promise(function (res) {
+        new window.THREE.GLTFExporter().parse(obj, res, { binary: true, onlyVisible: true, maxTextureSize: 512 });
+      });
+    });
+  }
+  /* The same model as base64, for attaching to the quote email. */
+  function glbBase64() {
+    return glbBuffer().then(function (buf) {
+      var bytes = new Uint8Array(buf), bin = '';
+      for (var i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+      return btoa(bin);
+    });
+  }
+  function glb(btn) {
+    var label = btn.textContent;
+    btn.textContent = 'Preparing 3D model…';
+    btn.disabled = true;
+    glbBuffer().then(function (result) {
+      save(new Blob([result], { type: 'model/gltf-binary' }), 'joinerycraft-' + D.mode + '-' + stamp() + '.glb');
+      btn.textContent = label; btn.disabled = false;
     }).catch(function () { btn.textContent = 'Couldn’t export, try again'; btn.disabled = false; });
   }
 
@@ -180,5 +193,5 @@
   });
   document.getElementById('exportGlb').addEventListener('click', function () { glb(this); });
 
-  window.JCExport = { csv: csv, rows: rows };
+  window.JCExport = { csv: csv, rows: rows, glbBase64: glbBase64, mode: function () { return D.mode; } };
 })();

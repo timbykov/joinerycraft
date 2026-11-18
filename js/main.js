@@ -270,31 +270,58 @@
       });
       if (data['bot-field']) return;
       delete data['bot-field'];
-      data.access_key = WEB3FORMS_KEY;
-      data.subject = 'New quote request: ' + (data.project || 'website') + ' (' + (data.suburb || '') + ')';
-      data.from_name = 'Joinerycraft website';
-      /* order the email: who, what, then the design. The long cabinet list stays out of the email;
-         it downloads from the snapshot link along with the 3D model. */
-      var order = ['name', 'phone', 'email', 'suburb', 'project', 'stage', 'timing', 'budget', 'source', 'details'];
-      var out = { access_key: data.access_key, subject: data.subject, from_name: data.from_name, replyto: data.email || '' };
-      order.forEach(function (k) { if (data[k]) out[k] = data[k]; });
-      if (data.design_link) out['Open their 3D design (snapshot, cabinet list and 3D model download)'] = data.design_link;
-      if (data.design_details) out['Design details'] = data.design_details;
-      Object.keys(data).forEach(function (k) {
-        if (!(k in out) && data[k] && ['design', 'design_link', 'design_details', 'cabinet_list'].indexOf(k) === -1) out[k] = data[k];
-      });
-      data = out;
-      fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(data)
-      }).then(function (r) { return r.json(); }).then(function (j) {
-        if (!j.success) throw new Error(j.message || 'failed');
-        location.href = '/thank-you.html';
-      }).catch(function () {
+      function failed() {
         err.innerHTML = ICON + '<span>Sorry, that did not send. Please try again or call 1300 205 498.</span>';
         if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label; }
-      });
+      }
+      /* Preferred: our own /api/quote sends a branded email with the cabinet list (CSV) and
+         3D model (.glb) attached. Until email is set up there it answers ok:false, and we use Web3Forms. */
+      function viaWorker() {
+        return fetch('/api/quote', { headers: { Accept: 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : { ok: false }; })
+          .catch(function () { return { ok: false }; })
+          .then(function (j) {
+            if (!j.ok) return false;
+            var model = data.design_link && window.JCQuoteModel;
+            return Promise.resolve(model ? model.glb : '').then(function (glb) {
+              var fields = {};
+              ['name', 'phone', 'email', 'suburb', 'project', 'stage', 'timing', 'budget', 'source', 'details'].forEach(function (k) { if (data[k]) fields[k] = data[k]; });
+              var body = { fields: fields };
+              if (data.design_link) {
+                body.summary = data.design || ''; body.link = data.design_link; body.details = data.design_details || '';
+                body.csv = data.cabinet_list || ''; body.glb = glb || ''; body.mode = model ? model.mode : '';
+              }
+              return fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) })
+                .then(function (r) { return r.json(); }).then(function (res) { if (!res.ok) throw new Error(res.error || 'failed'); return true; });
+            });
+          });
+      }
+      function viaWeb3Forms() {
+        data.access_key = WEB3FORMS_KEY;
+        data.subject = 'New quote request: ' + (data.project || 'website') + ' (' + (data.suburb || '') + ')';
+        data.from_name = 'Joinerycraft website';
+        /* order the email: who, what, then the design. The long cabinet list stays out of the email;
+           it downloads from the snapshot link along with the 3D model. */
+        var order = ['name', 'phone', 'email', 'suburb', 'project', 'stage', 'timing', 'budget', 'source', 'details'];
+        var out = { access_key: data.access_key, subject: data.subject, from_name: data.from_name, replyto: data.email || '' };
+        order.forEach(function (k) { if (data[k]) out[k] = data[k]; });
+        if (data.design_link) out['Open their 3D design (snapshot, cabinet list and 3D model download)'] = data.design_link;
+        if (data.design_details) out['Design details'] = data.design_details;
+        Object.keys(data).forEach(function (k) {
+          if (!(k in out) && data[k] && ['design', 'design_link', 'design_details', 'cabinet_list'].indexOf(k) === -1) out[k] = data[k];
+        });
+        data = out;
+        return fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(data)
+        }).then(function (r) { return r.json(); }).then(function (j) {
+          if (!j.success) throw new Error(j.message || 'failed');
+        });
+      }
+      viaWorker().then(function (sent) { return sent || viaWeb3Forms(); })
+        .then(function () { location.href = '/thank-you.html'; })
+        .catch(failed);
     });
 
     /* Buttons that preselect a project type, e.g. "Book a showroom visit" */
