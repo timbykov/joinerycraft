@@ -76,7 +76,8 @@
       var I = m.island;
       I.items.forEach(function (it) {
         kick += it.w * 1000;
-        add('Island', 'Base', it.kind === 'drawers' ? '3 drawer base' : (it.w > 0.65 ? '2 door base' : '1 door base'), it.w * 1000, BASE_H, 600, 1, base, 'Faces back wall');
+        add('Island', 'Base', (BASE_DESC[it.kind] || BASE_DESC.door)(it.w * 1000, it), it.w * 1000, BASE_H, 600, 1, base,
+          ('Faces back wall. ' + ({ sink: 'Sink and tap above', dw: '600 mm dishwasher by others' }[it.kind] || '')).trim());
       });
       var wf = I.waterfall, iw = I.len * 1000 + (wf ? 80 : 40), idp = (I.depth + I.overhang) * 1000;
       rows.push({ location: 'Island', type: 'Benchtop', description: '40 mm island top with ' + r(I.overhang * 1000) + ' mm seating overhang' + (wf ? ' and 2 waterfall ends' : ''), width: r(iw), height: 40, depth: r(idp), qty: 1, door: '', brand: bench.brand, colour: bench.name, handles: '', notes: (wf ? 'Waterfall ends ' + r(idp) + ' x ' + r(DIM.BASE_TOP * 1000) + ' x 40. ' : '') + 'Seats ' + I.seats });

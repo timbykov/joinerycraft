@@ -83,8 +83,13 @@
     }
     if (opts.cornerL && items[0].kind !== 'oven') { items[0].kind = 'corner'; items[0].side = 'L'; }
     if (opts.cornerR && n > 1 && items[n - 1].kind !== 'oven') { items[n - 1].kind = 'corner'; items[n - 1].side = 'R'; }
-    // appliances, the sink and blind corners get standard widths, the rest share what is left
-    // try the full set of standard widths first, then drop the sink and corner, then the dishwasher
+    fitWidths(items, len);
+    return items;
+  }
+
+  /* appliances, the sink and blind corners get standard widths, the rest share what is left.
+     Try the full set of standard widths first, then drop the sink and corner, then the dishwasher. */
+  function fitWidths(items, len) {
     [{ oven: 0.6, dw: 0.6, sink: 0.8, corner: 0.95 }, { oven: 0.6, dw: 0.6 }, { oven: 0.6 }].some(function (FIX) {
       var fixed = 0, free = 0;
       items.forEach(function (it) { if (FIX[it.kind]) fixed += FIX[it.kind]; else free++; });
@@ -93,7 +98,6 @@
       items.forEach(function (it) { var ww = FIX[it.kind] || fw; it.x = r1(x); it.w = r1(ww); x += ww; });
       return true;
     });
-    return items;
   }
 
   function upperUnits(a, b, style, out) {
@@ -112,39 +116,52 @@
 
   function kitchen(s) {
     var shape = s.shape || 'straight';
-    var W = clamp(s.wall || 4.2, 2.4, 6.0), S = clamp(s.side || 2.4, 1.2, 3.6);
+    var W = clamp(s.wall || 4.2, 2.4, 9.0), S = clamp(s.side || 2.4, 1.2, 6.0);
     var corner = shape === 'l' || shape === 'u';
     var RET = BASE_D + 0.02; // a side run starts in front of the back run
     var talls = [];
     if (s.pantry === 'on') talls.push({ w: 0.9, kind: 'pantry' });
     if (s.fridge === 'on') talls.push({ w: FRIDGE_W, kind: 'fridge' });
     var tallW = talls.reduce(function (a, t) { return a + t.w; }, 0);
-    // in a U kitchen the tall cupboards go at the open end of the right wall, so they don't block the corner
-    var tallsOnRight = shape === 'u' && S - tallW >= 0.55;
-    var B = tallsOnRight ? W : W - tallW;
+    var left = s.fridgeSide === 'left';
+    /* where the fridge and pantry go: the chosen end of the back wall, but never in a corner.
+       In an L or U they go at the open end of that side wall instead. */
+    var sideFits = S - tallW >= 0.55;
+    var where = 'backR';
+    if (shape === 'u') where = sideFits ? (left ? 'sideL' : 'sideR') : 'backR';
+    else if (shape === 'l') where = left && sideFits ? 'sideL' : 'backR';
+    else where = left ? 'backL' : 'backR';
+    var onBack = where === 'backR' || where === 'backL';
+    var B = onBack ? W - tallW : W, off = where === 'backL' ? tallW : 0;
+    var islandSink = s.island === 'on' && shape !== 'galley' && s.sinkAt === 'island';
     var cnt = countFor(B, s.bases, 0.3, 1.0, 0.6);
     var n = cnt.n, uw = B / n;
     var cook = Math.round((B / 2) / uw - 0.5);
-    var back = { id: 'back', label: 'Back wall', len: W, pos: [-W / 2, 0], rot: 0, bench: [0, B], splash: [0, B], items: [] };
-    back.items = baseUnits(B, n, { cook: cook, sink: true, dishwasher: s.dishwasher !== 'off', cornerL: corner, cornerR: shape === 'u' });
-    if (!tallsOnRight) tallUnits(talls, W, back.items);
+    var back = { id: 'back', label: 'Back wall', len: W, pos: [-W / 2, 0], rot: 0, bench: [off, off + B], splash: [off, off + B], items: [] };
+    back.items = baseUnits(B, n, { cook: cook, sink: !islandSink, dishwasher: s.dishwasher !== 'off', cornerL: corner, cornerR: shape === 'u' });
+    back.items.forEach(function (it) { it.x = r1(it.x + off); });
+    if (where === 'backR') tallUnits(talls, W, back.items);
+    if (where === 'backL') tallUnits(talls.slice().reverse(), tallW, back.items);
     var oven = back.items.filter(function (it) { return it.kind === 'oven'; })[0];
     var hoodW = Math.min(0.9, Math.max(0.6, oven.w + 0.1)), hoodC = oven.x + oven.w / 2;
     var hood = { t: 'hood', x: r1(hoodC - hoodW / 2), w: r1(hoodW) };
     back.items.push(hood);
     var ups = s.overheads || 'full';
     if (ups !== 'none') {
-      upperUnits(0, hood.x, ups, back.items);
-      upperUnits(hood.x + hood.w, B, ups, back.items);
+      upperUnits(off, hood.x, ups, back.items);
+      upperUnits(hood.x + hood.w, off + B, ups, back.items);
     }
     var runs = [back];
     var reach = RET - UP_D; // side overheads run back to meet the back overheads
     function sideRun(id, label, pos, rot, isRight) {
-      var bl = isRight && tallsOnRight ? S - tallW : S;
+      // the left wall runs from its open end (x=0) to the corner; the right wall from the corner to its open end
+      var hasT = (isRight && where === 'sideR') || (!isRight && where === 'sideL');
+      var bl = hasT ? S - tallW : S, o = !isRight && hasT ? tallW : 0;
       var c2 = countFor(bl, 0, 0.3, 1.0, 0.6);
-      var run = { id: id, label: label, len: S, pos: pos, rot: rot, bench: [0, bl], splash: ups === 'none' ? null : [0, bl], items: baseUnits(bl, c2.n) };
-      if (isRight && tallsOnRight) tallUnits(talls, S, run.items);
-      if (ups !== 'none') { if (isRight) upperUnits(-reach, bl, ups, run.items); else upperUnits(0, S + reach, ups, run.items); }
+      var run = { id: id, label: label, len: S, pos: pos, rot: rot, bench: [o, o + bl], splash: ups === 'none' ? null : [o, o + bl], items: baseUnits(bl, c2.n) };
+      run.items.forEach(function (it) { it.x = r1(it.x + o); });
+      if (hasT) { if (isRight) tallUnits(talls, S, run.items); else tallUnits(talls.slice().reverse(), tallW, run.items); }
+      if (ups !== 'none') { if (isRight) upperUnits(-reach, bl, ups, run.items); else upperUnits(o, S + reach, ups, run.items); }
       return run;
     }
     if (corner) runs.push(sideRun('left', 'Left wall', [-W / 2, RET + S], Math.PI / 2, false));
@@ -155,18 +172,26 @@
       runs.push({ id: 'opp', label: 'Opposite wall', len: W, pos: [W / 2, gz], rot: Math.PI, bench: [0, W], splash: null, items: baseUnits(W, cg.n) });
     }
     var island = null, iMax = shape === 'u' ? W - 2 * RET - 1.8 : shape === 'l' ? W - RET - 1.6 : W - 0.4;
-    iMax = Math.max(1.2, Math.min(3.6, iMax));
+    iMax = Math.max(1.2, Math.min(6.0, iMax));
     if (s.island === 'on' && shape !== 'galley') {
       var L = clamp(s.islandLen || 2.4, 1.2, iMax);
-      var ic = countFor(L, 0, 0.3, 1.0, 0.6);
-      island = { len: L, cx: shape === 'l' ? RET / 2 + 0.3 : 0, z: BASE_D + 1.05, depth: 0.62, overhang: 0.34, items: baseUnits(L, ic.n), seats: Math.max(1, Math.floor(L / 0.6)), waterfall: s.bench !== 'timber' };
-      island.items.forEach(function (it, i) { it.kind = i === 0 || i === ic.n - 1 ? 'drawers' : 'door'; });
+      var ic = countFor(L, 0, 0.3, 1.0, 0.6), inn = ic.n;
+      if (islandSink) inn = Math.max(inn, s.dishwasher !== 'off' ? 3 : 2);
+      var iItems = [];
+      for (var q = 0; q < inn; q++) iItems.push({ t: 'base', x: r1(q * L / inn), w: r1(L / inn), kind: q === 0 || q === inn - 1 ? 'drawers' : 'door' });
+      if (islandSink) {
+        var si = Math.floor((inn - 1) / 2);
+        iItems[si].kind = 'sink';
+        if (s.dishwasher !== 'off') iItems[si + 1 < inn ? si + 1 : si - 1].kind = 'dw';
+        fitWidths(iItems, L);
+      }
+      island = { len: L, cx: shape === 'l' ? RET / 2 + 0.3 : 0, z: BASE_D + 1.05, depth: 0.62, overhang: 0.34, items: iItems, seats: Math.max(1, Math.floor(L / 0.6)), waterfall: s.bench !== 'timber', sink: islandSink };
     }
     var depth = Math.max(3.6, shape === 'galley' ? gz + 1.2 : (island ? island.z + 1.9 : 2.6), corner ? RET + S + 1.0 : 0);
     return {
       kind: 'kitchen', shape: shape, runs: runs, island: island, room: { w: W, d: depth, h: 2.7, sideWalls: corner || shape === 'galley' },
       limits: { bases: [cnt.min, cnt.max], islandLen: [1.2, r1(iMax)] }, counts: { bases: n },
-      sizes: { wall: W, side: S, islandLen: island ? island.len : 0 },
+      sizes: { wall: W, side: S, islandLen: island ? island.len : 0 }, tallsAt: talls.length ? where : '',
       target: [0, 1.1, Math.min(1.6, depth / 2.4)], radius: Math.max(5.6, W * 1.15 + 1.4, corner ? S * 1.3 + 3 : 0)
     };
   }

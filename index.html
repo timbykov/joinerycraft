@@ -363,8 +363,8 @@
             </button>
             <div class="opt-group opt-sizes" data-mode="kitchen" data-adv>
               <h3>Size &amp; cupboards</h3>
-              <label class="size-row"><span class="size-label">Back wall</span><input type="range" data-size="wall" min="2.4" max="6.0" step="0.1" aria-label="Back wall in metres"><span class="size-num"><input type="number" data-size-mm="wall" min="2400" max="6000" step="10" aria-label="Back wall in millimetres"> mm</span></label>
-              <label class="size-row" data-show="shape=l,u"><span class="size-label">Side walls</span><input type="range" data-size="side" min="1.2" max="3.6" step="0.1" aria-label="Side walls in metres"><span class="size-num"><input type="number" data-size-mm="side" min="1200" max="3600" step="10" aria-label="Side walls in millimetres"> mm</span></label>
+              <label class="size-row"><span class="size-label">Back wall</span><input type="range" data-size="wall" min="2.4" max="9.0" step="0.1" aria-label="Back wall in metres"><span class="size-num"><input type="number" data-size-mm="wall" min="2400" max="9000" step="10" aria-label="Back wall in millimetres"> mm</span></label>
+              <label class="size-row" data-show="shape=l,u"><span class="size-label">Side walls</span><input type="range" data-size="side" min="1.2" max="6.0" step="0.1" aria-label="Side walls in metres"><span class="size-num"><input type="number" data-size-mm="side" min="1200" max="6000" step="10" aria-label="Side walls in millimetres"> mm</span></label>
               <div class="step-row"><span class="size-label">Base cupboards on back wall</span><span class="stepper"><button type="button" class="step-btn" data-step="bases" data-dir="-1" aria-label="Fewer">&minus;</button><output data-count="bases">0</output><button type="button" class="step-btn" data-step="bases" data-dir="1" aria-label="More">+</button></span></div>
             </div>
             <div class="opt-group" data-mode="kitchen" data-show="shape!=galley" data-adv>
@@ -372,7 +372,7 @@
               <div class="opt-row">
                 <button type="button" class="opt opt-toggle" data-toggle="island">Add an island</button>
               </div>
-              <label class="size-row" data-show="island=on"><span class="size-label">Island length</span><input type="range" data-size="islandLen" min="1.2" max="3.6" step="0.1" aria-label="Island length in metres"><span class="size-num"><input type="number" data-size-mm="islandLen" min="1200" max="3600" step="10" aria-label="Island length in millimetres"> mm</span></label>
+              <label class="size-row" data-show="island=on"><span class="size-label">Island length</span><input type="range" data-size="islandLen" min="1.2" max="6.0" step="0.1" aria-label="Island length in metres"><span class="size-num"><input type="number" data-size-mm="islandLen" min="1200" max="6000" step="10" aria-label="Island length in millimetres"> mm</span></label>
             </div>
             <div class="opt-group" data-mode="kitchen" data-adv>
               <h3>Appliances &amp; tall cupboards</h3>
@@ -380,6 +380,20 @@
                 <button type="button" class="opt opt-toggle" data-toggle="pantry">Pantry</button>
                 <button type="button" class="opt opt-toggle" data-toggle="fridge">Fridge space</button>
                 <button type="button" class="opt opt-toggle" data-toggle="dishwasher">Dishwasher</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="fridgeSide" data-mode="kitchen" data-show="fridge=on" data-adv>
+              <h3>Fridge on the</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="left">Left</button>
+                <button type="button" class="opt" data-val="right">Right</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="sinkAt" data-mode="kitchen" data-show="island=on;shape!=galley" data-adv>
+              <h3>Sink</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="wall">On the back wall</button>
+                <button type="button" class="opt" data-val="island">In the island</button>
               </div>
             </div>
             <div class="opt-group opt-sizes" data-mode="laundry" hidden data-adv>

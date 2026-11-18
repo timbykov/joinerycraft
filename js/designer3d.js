@@ -476,7 +476,20 @@
       box(isl, ix, 0, 0.06, iw, KICK, idp - 0.06, M.kick);
       I.items.forEach(function (it, q) {
         if (it.kind === 'drawers') for (var r = 0; r < 3; r++) front(isl, ix + it.x, KICK + r * (BASE_TOP - KICK) / 3, idp, it.w, (BASE_TOP - KICK) / 3, c.baseM, { style: s.door, handle: hd, drawer: true });
-        else front(isl, ix + it.x, KICK, idp, it.w, BASE_TOP - KICK, c.baseM, { style: s.door, handle: hd, hingeLeft: q % 2 === 1 });
+        else if (it.kind === 'dw') front(isl, ix + it.x, KICK, idp, it.w, BASE_TOP - KICK, c.baseM, { style: s.door, handle: hd, drawer: true });
+        else if (it.w > 0.65) {
+          front(isl, ix + it.x, KICK, idp, it.w / 2, BASE_TOP - KICK, c.baseM, { style: s.door, handle: hd, hingeLeft: false });
+          front(isl, ix + it.x + it.w / 2, KICK, idp, it.w / 2, BASE_TOP - KICK, c.baseM, { style: s.door, handle: hd, hingeLeft: true });
+        } else front(isl, ix + it.x, KICK, idp, it.w, BASE_TOP - KICK, c.baseM, { style: s.door, handle: hd, hingeLeft: q % 2 === 1 });
+        if (it.kind === 'sink') {
+          // sink near the working side, tap behind it facing the cook
+          var sw2 = Math.min(0.7, it.w - 0.1), bt = BASE_TOP + BENCH_T;
+          box(isl, ix + it.x + (it.w - sw2) / 2, bt + 0.001, idp - 0.48, sw2, 0.004, 0.4, M.steel, true);
+          var tg = new T.Group();
+          tg.position.set(ix + it.x + it.w / 2, 0, idp - 0.56);
+          isl.add(tg);
+          tap(tg, 0, 0, bt, hd);
+        }
       });
       var wf = I.waterfall;
       box(isl, ix - (wf ? 0.04 : 0.02), BASE_TOP, -I.overhang, iw + (wf ? 0.08 : 0.04), BENCH_T, idp + I.overhang, c.bM);
@@ -488,7 +501,7 @@
       isl.position.set(I.cx, 0, I.z + idp);
       world.add(isl);
       var sm = hd === 'brass' ? handleMat('brass') : handleMat('black');
-      var seats = Math.min(I.seats, 5), sz = I.z + idp + 0.5;
+      var seats = Math.min(I.seats, 8), sz = I.z + idp + 0.5;
       for (var q = 0; q < seats; q++) {
         var sx = I.cx - iw / 2 + (q + 0.5) * iw / seats;
         cyl(world, 0.19, 0.05, M.stool, 'y', sx, 0.66, sz);

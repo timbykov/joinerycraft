@@ -74,7 +74,7 @@
 
   /* starting design follows what is most asked for in 2026: L-shape with an island, timber-look
      base cupboards with white overheads, flat doors, white stone benchtop and splashback */
-  var ks = { shape: 'l', wall: 4.2, side: 2.4, bases: 0, island: 'on', islandLen: 2.4, pantry: 'off', fridge: 'on', dishwasher: 'on', overheads: 'full',
+  var ks = { shape: 'l', wall: 4.2, side: 2.4, bases: 0, island: 'on', islandLen: 2.4, pantry: 'off', fridge: 'on', fridgeSide: 'right', sinkAt: 'wall', dishwasher: 'on', overheads: 'full',
     door: 'flat', base: 'p-prime-oak', upper: 'p-classic-white', bench: 'cs-empira-white', splash: 'stone', handle: 'brass', wallC: 'warm-white', floorC: 'oak-light' };
   var ws = { wtype: 'builtin', wdoors: 'hinged', door: 'flat', finish: 'p-prime-oak', internals: 'balanced', light: 'on', handle: 'black',
     width: 2.4, height: 2.4, doorCount: 0, panelCount: 0, bsec: [], showInside: 'off', wshape: 'u', wwidth: 3.2, wside: 1.6, wcount: {}, wsec: {}, wallC: 'warm-white', floorC: 'oak-light' };
@@ -378,11 +378,17 @@
       I.items.forEach(function (it, q) {
         var x = ix + it.x * ik, w = it.w * ik;
         if (it.kind === 'drawers') for (var r = 0; r < 3; r++) svg += door(x, itop + r * ih / 3, w, ih / 3, base, { drawer: true });
+        else if (it.kind === 'dw') svg += door(x, itop, w, ih, base, { drawer: true });
+        else if (it.w > 0.65) svg += door(x, itop, w / 2, ih, base, { hingeLeft: false }) + door(x + w / 2, itop, w / 2, ih, base, { hingeLeft: true });
         else svg += door(x, itop, w, ih, base, { hingeLeft: q % 2 === 1 });
+        if (it.kind === 'sink') {
+          var tx = x + w / 2, ty = itop - DIM.BENCH_T * ik;
+          svg += '<path d="M' + tx + ' ' + ty + ' V' + (ty - 0.24 * ik) + ' Q' + tx + ' ' + (ty - 0.3 * ik) + ' ' + (tx - 10) + ' ' + (ty - 0.3 * ik) + ' Q' + (tx - 19) + ' ' + (ty - 0.3 * ik) + ' ' + (tx - 19) + ' ' + (ty - 0.22 * ik) + '" stroke="' + metal + '" stroke-width="4" fill="none" stroke-linecap="round"/>';
+        }
       });
       svg += rect(ix, iy0 - DIM.KICK * ik, I.len * ik, DIM.KICK * ik, 'rgba(0,0,0,.35)');
-      for (var st = 0; st < Math.min(I.seats, 5); st++) {
-        var sx = ix + (st + 0.5) * (I.len * ik / Math.min(I.seats, 5));
+      for (var st = 0; st < Math.min(I.seats, 8); st++) {
+        var sx = ix + (st + 0.5) * (I.len * ik / Math.min(I.seats, 8));
         svg += rect(sx - 20, iy0 - 0.66 * ik, 40, 9, '#6b5a4a', ' rx="5"');
         svg += '<path d="M' + (sx - 14) + ' ' + (iy0 - 0.62 * ik) + ' L' + (sx - 19) + ' ' + (iy0 + 6) + ' M' + (sx + 14) + ' ' + (iy0 - 0.62 * ik) + ' L' + (sx + 19) + ' ' + (iy0 + 6) + ' M' + (sx - 17) + ' ' + (iy0 - 0.25 * ik) + ' H' + (sx + 17) + '" stroke="' + metal + '" stroke-width="3" fill="none"/>';
       }
@@ -666,7 +672,8 @@
       row('Base cupboards on back wall', m.counts.bases);
       row('Island', m.island ? 'Yes, ' + mm(m.island.len) + ' mm' : 'No');
       row('Pantry', on(st.pantry));
-      row('Fridge space', st.fridge === 'on' ? 'Yes, ' + mm(D2.FRIDGE_W) + ' mm wide' : 'No');
+      row('Fridge space', st.fridge === 'on' ? 'Yes, ' + mm(D2.FRIDGE_W) + ' mm wide, ' + (m.tallsAt === 'sideL' ? 'end of the left wall' : m.tallsAt === 'sideR' ? 'end of the right wall' : m.tallsAt === 'backL' ? 'left end of the back wall' : 'right end of the back wall') : 'No');
+      row('Sink', m.island && m.island.sink ? 'In the island' : 'On the back wall');
       row('Dishwasher', st.dishwasher === 'off' ? 'No' : 'Yes');
     }
     if (mode === 'laundry') {
@@ -735,9 +742,9 @@
     var shapeName = { straight: 'Straight', l: 'L-shaped', u: 'U-shaped', galley: 'Galley' }[m.shape];
     var size = mm(m.sizes.wall) + (m.shape === 'l' || m.shape === 'u' ? ' x ' + mm(m.sizes.side) : '') + ' mm';
     var extras = [];
-    if (m.island) extras.push(mm(m.island.len) + ' mm island');
+    if (m.island) extras.push(mm(m.island.len) + ' mm island' + (m.island.sink ? ' with the sink' : ''));
     if (state.pantry === 'on') extras.push('pantry');
-    if (state.fridge === 'on') extras.push('fridge space');
+    if (state.fridge === 'on') extras.push('fridge space on the ' + (/L$/.test(m.tallsAt) ? 'left' : 'right'));
     if (state.dishwasher !== 'off') extras.push('dishwasher');
     var ups = { full: '', shelves: ', open shelves instead of overheads', none: ', no overheads' }[state.overheads] || '';
     return shapeName + ' kitchen, ' + size + ', ' + m.counts.bases + ' base cupboards on the back wall' + (extras.length ? ', ' + extras.join(', ') : '') + ups + '. ' +
