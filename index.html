@@ -272,6 +272,7 @@
             </div>
             <p class="designer-summary" id="designSummary" aria-live="polite"></p>
             <p class="designer-note">Illustration only. Your designer draws a full 3D design to your measurements.</p>
+            <div class="designer-cta-slot" id="ctaSlotStage"></div>
           </div>
 
           <div class="designer-controls" id="designControls">
@@ -429,23 +430,27 @@
                 <button type="button" class="opt" data-val="off">No thanks</button>
               </div>
             </div>
-            <div class="designer-actions">
-              <a href="#quote" class="btn btn-accent" id="designSend">Get a quote for this design</a>
-              <button type="button" class="btn btn-text" id="designRandom">Surprise me</button>
-            </div>
-            <div class="design-save" id="designSave">
-              <div class="design-save-btns">
-                <button type="button" class="btn btn-outline btn-sm" data-save="copy">Save &amp; copy link</button>
-                <button type="button" class="btn btn-outline btn-sm" data-save="share" hidden>Share</button>
+            <div class="designer-cta-slot" id="ctaSlotControls">
+            <div class="designer-cta" id="designerCta">
+              <div class="designer-actions">
+                <a href="#quote" class="btn btn-accent" id="designSend">Get a quote for this design</a>
+                <button type="button" class="btn btn-text" id="designRandom">Surprise me</button>
               </div>
-              <p class="save-note">Your design saves automatically on this device. Save a link to open it anywhere.</p>
-              <input class="save-link" type="text" readonly hidden aria-label="Link to your design">
+              <div class="design-save" id="designSave">
+                <div class="design-save-btns">
+                  <button type="button" class="btn btn-outline btn-sm" data-save="copy">Save &amp; copy link</button>
+                  <button type="button" class="btn btn-outline btn-sm" data-save="share" hidden>Share</button>
+                </div>
+                <p class="save-note">Your design saves automatically on this device. Save a link to open it anywhere.</p>
+                <input class="save-link" type="text" readonly hidden aria-label="Link to your design">
+              </div>
+              <p class="designer-measure">Not sure of your sizes? <a href="measure.html">How to measure your kitchen or wardrobe</a></p>
+              <div class="designer-export">
+                <span>Download this design:</span>
+                <button type="button" class="btn-link" id="exportCsv">Cabinet list (CSV)</button>
+                <button type="button" class="btn-link" id="exportGlb">3D model (.glb)</button>
+              </div>
             </div>
-            <p class="designer-measure">Not sure of your sizes? <a href="measure.html">How to measure your kitchen or wardrobe</a></p>
-            <div class="designer-export">
-              <span>Download this design:</span>
-              <button type="button" class="btn-link" id="exportCsv">Cabinet list (CSV)</button>
-              <button type="button" class="btn-link" id="exportGlb">3D model (.glb)</button>
             </div>
           </div>
         </div>

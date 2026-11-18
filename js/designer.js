@@ -786,6 +786,16 @@
   });
 
   window.JCDesigner.setView = setView;
+  /* desktop: quote button, save and downloads sit under the sticky preview; phones: under the options */
+  (function () {
+    var cta = document.getElementById('designerCta'), st = document.getElementById('ctaSlotStage'), ct = document.getElementById('ctaSlotControls');
+    if (!cta || !st || !ct || !window.matchMedia) return;
+    var mq = window.matchMedia('(min-width: 901px)');
+    var place = function () { (mq.matches ? st : ct).appendChild(cta); };
+    place();
+    if (mq.addEventListener) mq.addEventListener('change', place); else if (mq.addListener) mq.addListener(place);
+  })();
+
   /* ---------- saving: auto-save on this device + a link that reopens the design anywhere ---------- */
   var SAVE_KEY = 'jc-design-v1';
   function snapshot() { return { v: 1, mode: mode, k: ks, w: ws }; }
@@ -816,6 +826,7 @@
   var saveBar = document.getElementById('designSave');
   if (saveBar) {
     var note = saveBar.querySelector('.save-note');
+    if (restoredFrom) note.classList.add('show');
     if (restoredFrom === 'device') note.innerHTML = 'Welcome back. We reopened your last design. <button type="button" class="btn-link" data-save="fresh">Start fresh</button>';
     else if (restoredFrom === 'link') note.textContent = 'Opened a saved design. Any changes save on this device.';
     saveBar.addEventListener('click', function (e) {
@@ -827,7 +838,7 @@
         location.reload();
         return;
       }
-      var url = designLink(), done = function (msg) { note.textContent = msg; };
+      var url = designLink(), done = function (msg) { note.textContent = msg; note.classList.add('show'); };
       if (b.dataset.save === 'share' && navigator.share) {
         navigator.share({ title: 'My Joinerycraft design', text: summary(), url: url }).catch(function () {});
         return;

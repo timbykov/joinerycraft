@@ -638,7 +638,8 @@
 
   function resize() {
     var full = host.classList.contains('is-full');
-    var w = host.clientWidth, h = full ? host.clientHeight : Math.round(w * 0.65);
+    var fixedH = full || (window.innerWidth > 900 && getComputedStyle(host).aspectRatio === 'auto');
+    var w = host.clientWidth, h = fixedH ? host.clientHeight : Math.round(w * 0.65);
     if (!w) return;
     var size = renderer.getSize(new T.Vector2());
     if (size.x !== w || size.y !== h) {
