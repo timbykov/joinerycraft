@@ -12,7 +12,7 @@
   }
   /* Real Polytec and Laminex board colours (js/boards.js) */
   var CABINET = (window.JC_BOARDS || [{ val: 'p-classic-white', name: 'Classic White', brand: 'Polytec', hex: '#f7f6f2' }]).map(function (b) {
-    return { val: b.val, name: b.name, brand: b.brand, group: b.group, wood: b.wood, swatch: b.hex, fill: b.wood ? 'url(#w-' + b.val + ')' : b.hex, edge: shade(b.hex, 0.82) };
+    return { val: b.val, name: b.name, brand: b.brand, group: b.group, wood: b.wood, swatch: b.hex, url: b.url, img: b.img, fill: b.wood ? 'url(#w-' + b.val + ')' : b.hex, edge: shade(b.hex, 0.82) };
   });
   function cname(o) { return o.val === 'timber' ? 'timber' : o.brand ? o.brand + ' ' + o.name : o.name.toLowerCase(); }
   function woodDefs() {
@@ -27,7 +27,7 @@
   }
   /* Real Caesarstone and Quantum Quartz stone colours, plus timber (js/boards.js) */
   var BENCH = (window.JC_STONES || [{ val: 'timber', name: 'Timber', brand: 'Timber', hex: '#c9a06e', group: 'Timber tops' }]).map(function (b) {
-    return { val: b.val, name: b.name, brand: b.brand, group: b.group, vein: b.vein, swatch: b.hex, fill: b.val === 'timber' ? 'url(#oak)' : b.vein ? 'url(#v-' + b.val + ')' : b.hex };
+    return { val: b.val, name: b.name, brand: b.brand, group: b.group, vein: b.vein, swatch: b.hex, url: b.url, img: b.img, fill: b.val === 'timber' ? 'url(#oak)' : b.vein ? 'url(#v-' + b.val + ')' : b.hex };
   });
   function veinDefs() {
     var out = '';
@@ -519,12 +519,49 @@
       var picker = g.querySelector('.board-picker');
       if (picker) {
         var sel = find(lists[picker.dataset.swatches], state[key]);
-        picker.querySelector('.opt-current').textContent = sel.val === 'timber' ? 'Timber top' : sel.brand + ' ' + sel.name;
+        showCurrent(picker.querySelector('.opt-current'), sel);
         var shownTab = picker.querySelector('.brand-tab.is-active');
         if (!picker.dataset.touched || (shownTab && shownTab.dataset.brand !== sel.brand && lastPickFromRandom)) showBrand(picker, sel.brand);
       }
     });
     sectionEditor();
+  }
+
+  /* the chosen colour, with the supplier's own swatch photo and a link to their colour page */
+  function host(u) { return u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]; }
+  function showCurrent(el, sel) {
+    if (el.dataset.val === sel.val) return;
+    el.dataset.val = sel.val;
+    el.textContent = '';
+    if (sel.val === 'timber') { el.textContent = 'Timber top'; return; }
+    if (sel.img) {
+      var im = document.createElement('img');
+      im.className = 'opt-photo';
+      im.src = sel.img;
+      im.alt = sel.brand + ' ' + sel.name + ' sample';
+      im.loading = 'lazy';
+      im.referrerPolicy = 'no-referrer';
+      im.style.backgroundColor = sel.swatch;
+      im.onerror = function () { im.remove(); };
+      el.appendChild(im);
+    }
+    var t = document.createElement('span');
+    t.className = 'opt-current-text';
+    var b = document.createElement('strong');
+    b.textContent = sel.brand + ' ' + sel.name;
+    t.appendChild(b);
+    if (sel.url) {
+      var a = document.createElement('a');
+      a.href = sel.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = 'See it on ' + host(sel.url) + ' \u2197';
+      t.appendChild(a);
+      var c = document.createElement('small');
+      c.textContent = 'Sample photo: ' + (sel.brand === 'Quantum Quartz' ? 'WK Stone' : sel.brand);
+      t.appendChild(c);
+    }
+    el.appendChild(t);
   }
 
   function summary() {
