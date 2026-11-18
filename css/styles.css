@@ -736,3 +736,10 @@ body.d3-locked { overflow: hidden; }
 .trade-steps span { color: var(--muted); font-size: .92rem; }
 @media (max-width: 1000px) { .trade-steps { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px) { .trade-steps { grid-template-columns: 1fr; } }
+
+/* quote snapshot: locked, dated view of exactly what was sent */
+.snap-banner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: 0 0 .9rem; padding: .8rem 1rem; border: 1.5px solid var(--oak); border-radius: var(--radius); background: #fbf3ea; }
+.snap-banner strong { display: block; color: var(--oak-dark); font-size: .95rem; }
+.snap-banner span { display: block; font-size: .86rem; color: var(--muted); }
+.is-locked .designer-controls { pointer-events: none; opacity: .55; }
+.is-locked .designer-actions, .is-locked .design-save { display: none !important; }

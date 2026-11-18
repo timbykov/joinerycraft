@@ -226,11 +226,63 @@
     }
   }
 
+  /* walls and floor the customer picked (Your walls / Your floor) */
+  function roomMats() {
+    var st = D.state, w = find(D.WALLS || [{ val: 'x', fill: '#efe9e0' }], st.wallC), f = find(D.FLOORS || [{ val: 'x', fill: '#d6c8b3', kind: 'tile' }], st.floorC);
+    M.wall = mat('wall-' + w.val, function () {
+      if (!w.tile) return std(w.fill, 0.95);
+      var t = canvasTex(256, 256, function (g, cw, ch) {
+        g.fillStyle = w.fill; g.fillRect(0, 0, cw, ch);
+        g.strokeStyle = '#d9d7d1'; g.lineWidth = 3;
+        for (var i = 0; i <= 2; i++) { g.beginPath(); g.moveTo(0, i * 128); g.lineTo(cw, i * 128); g.stroke(); g.beginPath(); g.moveTo(i * 128, 0); g.lineTo(i * 128, ch); g.stroke(); }
+      });
+      t.wrapS = t.wrapT = T.RepeatWrapping;
+      t.repeat.set(14 / 0.6, 4);
+      return std(0xffffff, 0.35, 0, { map: t });
+    });
+    M.sidewall = mat('side-' + w.val, function () {
+      if (!w.tile) return std(shade(w.fill, 0.96), 0.95);
+      var m2 = M.wall.clone(); m2.map = M.wall.map.clone(); m2.map.needsUpdate = true; m2.color = new T.Color(0xf2f2f2); return m2;
+    });
+    M.floor = mat('floor-' + f.val, function () {
+      var t = canvasTex(512, 512, function (g, cw, ch) {
+        g.fillStyle = f.fill; g.fillRect(0, 0, cw, ch);
+        if (f.kind === 'timber') {
+          for (var r = 0; r < 8; r++) {
+            var off = (r * 211) % 512;
+            g.fillStyle = shade(f.fill, r % 3 === 0 ? 0.95 : r % 3 === 1 ? 1.03 : 1);
+            g.fillRect(0, r * 64, cw, 64);
+            for (var q = 0; q < 14; q++) {
+              var gy = r * 64 + 4 + Math.random() * 56;
+              g.strokeStyle = Math.random() < 0.6 ? shade(f.fill, 0.86) : shade(f.fill, 1.08);
+              g.globalAlpha = 0.25 + Math.random() * 0.3; g.lineWidth = 0.6 + Math.random();
+              g.beginPath(); g.moveTo(0, gy);
+              for (var gx = 0; gx <= cw; gx += 16) g.lineTo(gx, gy + Math.sin(gx / (30 + q * 7) + q) * 1.2);
+              g.stroke();
+            }
+            g.globalAlpha = 1;
+            g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 2;
+            g.strokeRect(-2, r * 64, cw + 4, 64);
+            g.beginPath(); g.moveTo(off, r * 64); g.lineTo(off, r * 64 + 64); g.stroke();
+          }
+        } else if (f.kind === 'tile') {
+          g.strokeStyle = 'rgba(0,0,0,.10)'; g.lineWidth = 3;
+          for (var i = 0; i <= 4; i++) { g.beginPath(); g.moveTo(0, i * 128); g.lineTo(cw, i * 128); g.stroke(); g.beginPath(); g.moveTo(i * 128, 0); g.lineTo(i * 128, ch); g.stroke(); }
+        } else {
+          for (var n = 0; n < 1400; n++) { g.fillStyle = 'rgba(' + (Math.random() < 0.5 ? '0,0,0' : '255,255,255') + ',' + (0.03 + Math.random() * 0.05) + ')'; g.fillRect(Math.random() * cw, Math.random() * ch, 3 + Math.random() * 6, 2 + Math.random() * 4); }
+        }
+      });
+      t.wrapS = t.wrapT = T.RepeatWrapping;
+      t.repeat.set(7, 7);
+      return std(0xffffff, f.kind === 'concrete' ? 0.55 : 0.75, 0, { map: t });
+    });
+  }
+
   function room(width, depth, height, sideWalls) {
+    roomMats();
     var floor = new T.Mesh(new T.PlaneGeometry(14, 14), M.floor);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
-    M.floor.map.repeat.set(7, 7);
     world.add(floor);
     var back = new T.Mesh(new T.PlaneGeometry(14, height), M.wall);
     back.position.set(0, height / 2, 0);

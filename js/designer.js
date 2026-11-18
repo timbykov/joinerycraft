@@ -51,20 +51,39 @@
     door: { flat: 'flat panel doors', shaker: 'shaker doors', fingerpull: 'fingerpull doors' },
     splash: { subway: 'white subway tile splashback', stone: 'matching stone splashback', glass: 'smoked glass splashback' }
   };
-  var lists = { cabinet: CABINET, bench: BENCH, handle: HANDLE };
+  /* room colours, so people can see the joinery against walls and floors like their own */
+  var WALLS = [
+    { val: 'warm-white', name: 'Warm white', fill: '#efe9e0' },
+    { val: 'white', name: 'Bright white', fill: '#f7f7f4' },
+    { val: 'greige', name: 'Greige', fill: '#d8cfc2' },
+    { val: 'sage', name: 'Soft sage', fill: '#c8cfbe' },
+    { val: 'blue', name: 'Pale blue', fill: '#cdd7dc' },
+    { val: 'charcoal', name: 'Charcoal', fill: '#55534f' },
+    { val: 'tile-white', name: 'White tiles', fill: '#f4f4f1', tile: true }
+  ];
+  var FLOORS = [
+    { val: 'oak-light', name: 'Light oak timber', fill: '#d8c3a2', kind: 'timber' },
+    { val: 'oak-mid', name: 'Mid oak timber', fill: '#b68c60', kind: 'timber' },
+    { val: 'walnut', name: 'Dark timber', fill: '#6f5038', kind: 'timber' },
+    { val: 'stone', name: 'Beige stone tiles', fill: '#d6c8b3', kind: 'tile' },
+    { val: 'tile-white', name: 'White tiles', fill: '#ecebe7', kind: 'tile' },
+    { val: 'tile-grey', name: 'Grey tiles', fill: '#b6b4af', kind: 'tile' },
+    { val: 'concrete', name: 'Polished concrete', fill: '#a9a7a2', kind: 'concrete' }
+  ];
+  var lists = { cabinet: CABINET, bench: BENCH, handle: HANDLE, wall: WALLS, floor: FLOORS };
 
   /* starting design follows what is most asked for in 2026: L-shape with an island, timber-look
      base cupboards with white overheads, flat doors, white stone benchtop and splashback */
   var ks = { shape: 'l', wall: 4.2, side: 2.4, bases: 0, island: 'on', islandLen: 2.4, pantry: 'off', fridge: 'on', dishwasher: 'on', overheads: 'full',
-    door: 'flat', base: 'p-prime-oak', upper: 'p-classic-white', bench: 'cs-empira-white', splash: 'stone', handle: 'brass' };
+    door: 'flat', base: 'p-prime-oak', upper: 'p-classic-white', bench: 'cs-empira-white', splash: 'stone', handle: 'brass', wallC: 'warm-white', floorC: 'oak-light' };
   var ws = { wtype: 'builtin', wdoors: 'hinged', door: 'flat', finish: 'p-prime-oak', internals: 'balanced', light: 'on', handle: 'black',
-    width: 2.4, height: 2.4, doorCount: 0, panelCount: 0, bsec: [], showInside: 'off', wshape: 'u', wwidth: 3.2, wside: 1.6, wcount: {}, wsec: {} };
+    width: 2.4, height: 2.4, doorCount: 0, panelCount: 0, bsec: [], showInside: 'off', wshape: 'u', wwidth: 3.2, wside: 1.6, wcount: {}, wsec: {}, wallC: 'warm-white', floorC: 'oak-light' };
   /* laundry: sage green shaker base, white overheads, stacked washer and dryer with a broom cupboard */
   var ls = { lwall: 2.4, machines: 'stacked', broom: 'on', overheads: 'full',
-    door: 'shaker', base: 'p-oasis', upper: 'p-classic-white', bench: 'cs-empira-white', splash: 'subway', handle: 'brass' };
+    door: 'shaker', base: 'p-oasis', upper: 'p-classic-white', bench: 'cs-empira-white', splash: 'subway', handle: 'brass', wallC: 'tile-white', floorC: 'tile-white' };
   /* vanity: wall-hung oak with a white stone top, above-counter basin and a round mirror */
   var vs = { vwall: 1.2, mount: 'wall', basins: 'single', vfront: 'drawers', mirror: 'round', tower: 'off',
-    door: 'flat', base: 'p-prime-oak', upper: 'p-prime-oak', bench: 'cs-empira-white', handle: 'brass' };
+    door: 'flat', base: 'p-prime-oak', upper: 'p-prime-oak', bench: 'cs-empira-white', handle: 'brass', wallC: 'tile-white', floorC: 'tile-white' };
   var STATES = { kitchen: ks, laundry: ls, vanity: vs, wardrobe: ws };
   var mode = 'kitchen';
   var state = ks;
@@ -93,7 +112,7 @@
   root.querySelectorAll('[data-swatches]').forEach(function (row) {
     var kind = row.dataset.swatches;
     var list = lists[kind];
-    if (kind === 'handle') {
+    if (kind === 'handle' || kind === 'wall' || kind === 'floor') {
       lists[kind].forEach(function (o) { row.appendChild(makeSwatch(o)); });
       return;
     }
@@ -199,6 +218,15 @@
     '<linearGradient id="steelg" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#b9bdc1"/><stop offset=".5" stop-color="#d9dcdf"/><stop offset="1" stop-color="#aeb2b6"/></linearGradient>' +
     '<linearGradient id="led" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffe7b0" stop-opacity=".9"/><stop offset="1" stop-color="#ffe7b0" stop-opacity="0"/></linearGradient>' +
     '<linearGradient id="floor" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d8cdbd"/><stop offset="1" stop-color="#c7b9a5"/></linearGradient>';
+  function roomOf(st) { return { wall: find(WALLS, st.wallC), floor: find(FLOORS, st.floorC) }; }
+  function roomFill(SW, SH, floorY) {
+    var r = roomOf(state), w = r.wall, f = r.floor, out = '';
+    out += '<defs><pattern id="wallTile" width="40" height="40" patternUnits="userSpaceOnUse"><rect width="40" height="40" fill="' + w.fill + '"/><path d="M0 .5H40M.5 0V40" stroke="#dcdad4" stroke-width="1"/></pattern>' +
+      '<pattern id="floorPat" width="' + (f.kind === 'timber' ? 120 : 60) + '" height="' + (f.kind === 'timber' ? 14 : 18) + '" patternUnits="userSpaceOnUse"><rect width="120" height="18" fill="' + f.fill + '"/>' +
+      (f.kind === 'concrete' ? '' : '<path d="M0 .5H120' + (f.kind === 'timber' ? 'M60.5 0V14' : 'M.5 0V18') + '" stroke="' + shade(f.fill, 0.86) + '" stroke-width="1"/>') + '</pattern></defs>';
+    out += rect(0, 0, SW, floorY, w.tile ? 'url(#wallTile)' : w.fill) + rect(0, floorY, SW, SH - floorY, 'url(#floorPat)');
+    return out + '<rect x="0" y="' + floorY + '" width="' + SW + '" height="' + (SH - floorY) + '" fill="url(#floor)" opacity=".25"/>';
+  }
   function svgOpen(W, H) {
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"><defs>' + DEFS_COMMON + woodDefs() + veinDefs() + '</defs>';
   }
@@ -248,7 +276,7 @@
     function X(v) { return x0 + v * k; }
     function Y(v) { return floorY - v * k; }
     var svg = svgOpen(SW, SH);
-    svg += rect(0, 0, SW, floorY, '#efe9e0') + rect(0, floorY, SW, SH - floorY, 'url(#floor)');
+    svg += roomFill(SW, SH, floorY);
     var metal = state.handle === 'brass' ? '#c4a15a' : state.handle === 'steel' ? '#a9adb1' : '#2a2a2a';
     var bTop = DIM.BASE_TOP + DIM.BENCH_T;
     // splashback and benchtop
@@ -404,7 +432,7 @@
     function X(v) { return x0 + v * k; }
     function Y(v) { return floorY - v * k; }
     var svg = svgOpen(SW, SH);
-    svg += rect(0, 0, SW, floorY, '#efe9e0') + rect(0, floorY, SW, SH - floorY, 'url(#floor)');
+    svg += roomFill(SW, SH, floorY);
     svg += '<ellipse cx="' + (x0 + W * k / 2) + '" cy="' + (floorY + 6) + '" rx="' + (W * k / 2 + 30) + '" ry="9" fill="rgba(0,0,0,.1)"/>';
     var inside = m.kind === 'walkin' || ws.showInside === 'on';
     svg += rect(X(0) - 6, Y(H) - 6, W * k + 12, H * k + 6, m.kind === 'walkin' ? c.fill : '#e4ddd2', m.kind === 'walkin' ? ' stroke="' + c.edge + '"' : '');
@@ -615,7 +643,85 @@
       if (Math.abs(D2.UP_D - 0.34) > 0.005 && state.overheads === 'full') x.push(mm(D2.UP_D) + ' mm deep overheads');
       if (Math.abs(D2.FRIDGE_W - 0.92) > 0.005 && state.fridge === 'on') x.push(mm(D2.FRIDGE_W) + ' mm fridge space');
     }
-    return x.length ? t.replace(/\.$/, '') + '. Custom sizes: ' + x.join(', ') + '.' : t;
+    t = x.length ? t.replace(/\.$/, '') + '. Custom sizes: ' + x.join(', ') + '.' : t;
+    var rm = roomOf(state);
+    return t + ' Shown with ' + rm.wall.name.toLowerCase() + ' walls and ' + rm.floor.name.toLowerCase() + ' floor.';
+  }
+
+  /* every choice, one per line, for the quote email */
+  function designDetails() {
+    if (!model) build();
+    var m = model, st = state, D2 = L.dims, out = [];
+    function row(k, v) { if (v !== '' && v != null) out.push(k + ': ' + v); }
+    function on(v) { return v === 'on' ? 'Yes' : 'No'; }
+    function board(v) { return cname(find(CABINET, v)); }
+    function bench() { return cname(find(BENCH, st.bench)); }
+    var DOOR = { flat: 'Flat panel', shaker: 'Shaker', fingerpull: 'Fingerpull' };
+    var hdl = st.door === 'fingerpull' ? 'Fingerpull (no handles)' : find(HANDLE, st.handle).name;
+    row('Designing', { kitchen: 'Kitchen', laundry: 'Laundry', vanity: 'Vanity', wardrobe: 'Wardrobe' }[mode]);
+    if (mode === 'kitchen') {
+      row('Shape', { straight: 'Straight', l: 'L-shape', u: 'U-shape', galley: 'Galley' }[m.shape]);
+      row('Back wall', mm(m.sizes.wall) + ' mm');
+      if (m.shape === 'l' || m.shape === 'u') row('Side walls', mm(m.sizes.side) + ' mm');
+      row('Base cupboards on back wall', m.counts.bases);
+      row('Island', m.island ? 'Yes, ' + mm(m.island.len) + ' mm' : 'No');
+      row('Pantry', on(st.pantry));
+      row('Fridge space', st.fridge === 'on' ? 'Yes, ' + mm(D2.FRIDGE_W) + ' mm wide' : 'No');
+      row('Dishwasher', st.dishwasher === 'off' ? 'No' : 'Yes');
+    }
+    if (mode === 'laundry') {
+      row('Laundry wall', mm(m.sizes.lwall) + ' mm');
+      row('Washer & dryer', { stacked: 'Stacked tower', side: 'Side by side under bench', washer: 'Washer only under bench' }[st.machines]);
+      row('Broom cupboard', on(st.broom));
+    }
+    if (mode === 'kitchen' || mode === 'laundry') {
+      row('Overheads', { full: 'Cupboards', shelves: 'Open shelves', none: 'None' }[st.overheads]);
+      row('Door style', DOOR[st.door]);
+      row('Base colour', board(st.base));
+      row('Overhead colour', board(st.upper));
+      row('Benchtop', bench());
+      row('Splashback', LABELS.splash[st.splash].charAt(0).toUpperCase() + LABELS.splash[st.splash].slice(1));
+      row('Handles', hdl);
+      row('Top of cupboards', mm(D2.UP_TOP) + ' mm');
+      row('Bench height', mm(D2.BASE_TOP + D2.BENCH_T) + ' mm');
+      row('Base cupboard depth', mm(D2.BASE_D + 0.02) + ' mm');
+      if (st.overheads === 'full') row('Overhead depth', mm(D2.UP_D) + ' mm');
+    }
+    if (mode === 'vanity') {
+      row('Style', st.mount === 'floor' ? 'Floor-standing' : 'Wall-hung');
+      row('Width', mm(m.sizes.vwall) + ' mm');
+      row('Height to top', mm(D2.BASE_TOP + D2.BENCH_T) + ' mm');
+      row('Depth', mm(D2.BASE_D + 0.02) + ' mm');
+      row('Basins', m.counts.basins + ' above-counter');
+      row('Fronts', st.vfront === 'doors' ? 'Doors' : 'Drawers');
+      row('Mirror', { round: 'Round mirror', cabinet: 'Mirror shaving cabinet', none: 'None' }[st.mirror]);
+      row('Linen tower', on(st.tower));
+      row('Door style', DOOR[st.door]);
+      row('Colour', board(st.base));
+      row('Top', bench());
+      row('Handles', hdl);
+    }
+    if (mode === 'wardrobe') {
+      row('Type', st.wtype === 'walkin' ? 'Walk-in robe' : 'Built-in robe');
+      if (m.kind === 'walkin') {
+        row('Shape', { straight: 'One wall', l: 'L-shape', u: 'U-shape' }[m.shape]);
+        row('Back wall', mm(m.sizes.wwidth) + ' mm');
+        if (m.shape !== 'straight') row('Side walls', mm(m.sizes.wside) + ' mm');
+        m.runs.forEach(function (r) { row(r.label + ' sections', r.sections.map(function (k) { return L.SECTION[k]; }).join(', ')); });
+        row('LED lighting', on(st.light));
+      } else {
+        row('Size', mm(m.sizes.width) + ' wide x ' + mm(m.sizes.height) + ' high');
+        row('Doors', { hinged: 'Hinged', slidingpanel: 'Sliding panel', mirror: 'Sliding mirror' }[st.wdoors] + ', ' + m.counts.doors);
+        if (st.wdoors === 'hinged') row('Door style', DOOR[st.door]);
+        row('Sections', m.sections.wall.map(function (k) { return L.SECTION[k]; }).join(', '));
+      }
+      row('Depth', mm(D2.W_D) + ' mm');
+      row('Finish', board(st.finish));
+      row('Handles', find(HANDLE, st.handle).name);
+    }
+    var rm = roomOf(st);
+    row('Room shown with', rm.wall.name + ' walls, ' + rm.floor.name.toLowerCase() + ' floor');
+    return out.join('\n');
   }
   function summaryCore() {
     if (!model) build();
@@ -694,6 +800,7 @@
 
   var lastPickFromRandom = false;
   root.addEventListener('click', function (e) {
+    if (locked && e.target.closest('.designer-controls')) return;
     var tab = e.target.closest('.brand-tab');
     if (tab) { tab.closest('.board-picker').dataset.touched = '1'; return; }
     lastPickFromRandom = false;
@@ -718,10 +825,12 @@
     render();
   });
   root.addEventListener('input', function (e) {
+    if (locked) return;
     var t = e.target;
     if (t.dataset.size) { state[t.dataset.size] = parseFloat(t.value); render(); }
   });
   root.addEventListener('change', function (e) {
+    if (locked) return;
     var t = e.target;
     if (t.dataset.sizeMm) {
       var v = parseFloat(t.value);
@@ -790,8 +899,14 @@
     var text = 'My design: ' + summary();
     var field = document.getElementById('designField');
     if (field) field.value = text;
+    /* the link is a frozen snapshot: the whole design is written into the link itself,
+       stamped with the time, and opens read-only */
+    var sent = new Date();
+    var snap = snapshot(); snap.q = 1; snap.t = sent.getTime();
     var linkF = document.getElementById('designLinkField');
-    if (linkF) linkF.value = designLink();
+    if (linkF) linkF.value = location.origin + '/?d=' + enc(snap) + '#design';
+    var detF = document.getElementById('designDetailsField');
+    if (detF) detF.value = 'Sent ' + sent.toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' }) + '\n' + designDetails();
     var list = document.getElementById('cabinetListField');
     if (list && window.JCExport) list.value = window.JCExport.csv();
     var form = document.getElementById('quoteForm');
@@ -810,7 +925,7 @@
   window.JCDesigner = {
     get mode() { return mode; },
     get state() { return state; },
-    CABINET: CABINET, BENCH: BENCH, HANDLE: HANDLE,
+    CABINET: CABINET, BENCH: BENCH, HANDLE: HANDLE, WALLS: WALLS, FLOORS: FLOORS,
     model: function () { return L.build(mode, state); }
   };
   var pane3d = document.getElementById('design3d');
@@ -898,21 +1013,44 @@
     }
     return true;
   }
-  var saveTimer = 0, restoredFrom = '';
+  var saveTimer = 0, restoredFrom = '', locked = false;
   function autosave() {
     clearTimeout(saveTimer);
+    if (locked) return;
     saveTimer = setTimeout(function () { try { localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot())); } catch (e) {} }, 400);
   }
   window.JCDesigner.link = designLink;
   var qs = new URLSearchParams(location.search);
-  if (qs.get('d')) { try { if (restore(dec(qs.get('d')))) restoredFrom = 'link'; } catch (e) {} }
+  var snapAt = 0;
+  if (qs.get('d')) { try { var so = dec(qs.get('d')); if (restore(so)) { restoredFrom = so.q ? 'quote' : 'link'; snapAt = so.t || 0; } } catch (e) {} }
   else if (!qs.get('look') && !qs.get('design')) {
     try { if (restore(JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'))) restoredFrom = 'device'; } catch (e) {}
+  }
+  /* a quote snapshot opens locked: what the customer sent, dated, and nobody can change it.
+     "Edit a copy" unlocks a copy to play with; the emailed link itself never changes. */
+  if (restoredFrom === 'quote') {
+    locked = true;
+    root.classList.add('is-locked');
+    var ban = document.createElement('div');
+    ban.className = 'snap-banner';
+    ban.setAttribute('role', 'status');
+    var when = snapAt ? new Date(snapAt).toLocaleString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+    ban.innerHTML = '<div><strong>Quote snapshot</strong><span>' + (when ? 'Sent ' + when + '. ' : '') + 'This is exactly what was sent with the quote request, and it can\u2019t be changed.</span></div>' +
+      '<button type="button" class="btn btn-outline btn-sm" data-unlock>Edit a copy</button>';
+    var stage = root.querySelector('.designer-stage');
+    stage.insertBefore(ban, stage.firstChild);
+    ban.querySelector('[data-unlock]').addEventListener('click', function () {
+      locked = false;
+      root.classList.remove('is-locked');
+      ban.remove();
+      try { history.replaceState(null, '', location.pathname + '#design'); } catch (e) {}
+      autosave();
+    });
   }
   var saveBar = document.getElementById('designSave');
   if (saveBar) {
     var note = saveBar.querySelector('.save-note');
-    if (restoredFrom) note.classList.add('show');
+    if (restoredFrom && restoredFrom !== 'quote') note.classList.add('show');
     if (restoredFrom === 'device') note.textContent = 'Welcome back. We reopened your last design.';
     else if (restoredFrom === 'link') note.textContent = 'Opened a saved design. Any changes save on this device.';
     saveBar.addEventListener('click', function (e) {
