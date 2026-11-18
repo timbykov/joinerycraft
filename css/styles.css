@@ -232,10 +232,22 @@ legend { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; margin-
 .field input[type="file"] { padding: .6rem; font-size: .9rem; }
 .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--oak); }
 .field .is-invalid { border-color: #b4412c; }
+/* errors: red outline, tinted fill and a message with an icon under each field */
+.field.has-error label { color: #a8361f; }
+.field.has-error input, .field.has-error select, .field.has-error textarea { border-color: #b4412c; background: #fdf3f0; }
+.field.has-error input:focus, .field.has-error select:focus, .field.has-error textarea:focus { border-color: #a8361f; box-shadow: 0 0 0 3px rgba(180,65,44,.15); }
+.choice-grid.has-error .choice span { border-color: #c96a58; background: #fdf3f0; }
+.field-msg { display: flex; align-items: flex-start; gap: .4rem; color: #a8361f; font-size: .88rem; font-weight: 600; margin: .45rem 0 0; line-height: 1.35; }
+.field-msg[hidden] { display: none; }
+.choice-grid + .field-msg { margin-top: .6rem; }
+.err-icon { flex: none; width: 1em; height: 1em; margin-top: .15em; }
 .form-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 1.5rem; }
 .form-step[data-step="1"] .form-nav { justify-content: flex-end; }
 .form-note { font-size: .82rem; color: var(--muted); margin: 1rem 0 0; }
-.form-error { color: #b4412c; font-size: .9rem; font-weight: 600; margin: .75rem 0 0; min-height: 1.2em; }
+.form-error { display: flex; align-items: flex-start; gap: .4rem; color: #a8361f; font-size: .9rem; font-weight: 600; margin: .85rem 0 0; min-height: 1.2em; line-height: 1.4; }
+.form-error:empty { min-height: 0; margin: 0; }
+.form-error a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.form-error a:hover { color: var(--ink); }
 
 /* FAQ */
 .faq { display: grid; grid-template-columns: .8fr 1.2fr; gap: 4rem; }
@@ -716,3 +728,11 @@ body.d3-locked { overflow: hidden; }
 }
 @media (min-width: 901px) { #designPreview svg { max-height: clamp(300px, calc(100vh - var(--header-h) - 390px), 580px); margin: 0 auto; } }
 @media (max-width: 420px) { .mode-tab { padding: .5rem .75rem; font-size: .86rem; } }
+/* trade page: numbered steps */
+.trade-steps { list-style: none; counter-reset: ts; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; padding: 0; margin: 0; }
+.trade-steps li { counter-increment: ts; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.2rem 1.15rem; }
+.trade-steps li::before { content: counter(ts); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--oak); color: #fff; font-weight: 700; font-size: .9rem; margin-bottom: .7rem; }
+.trade-steps strong { display: block; margin-bottom: .25rem; }
+.trade-steps span { color: var(--muted); font-size: .92rem; }
+@media (max-width: 1000px) { .trade-steps { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .trade-steps { grid-template-columns: 1fr; } }
