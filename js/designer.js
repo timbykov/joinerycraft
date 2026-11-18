@@ -493,6 +493,7 @@
         else show = ws.wtype === 'builtin' && ws.wdoors === only;
       }
       if (show && g.dataset.show) show = shown(g.dataset.show);
+      if (show && 'adv' in g.dataset && !advanced) show = false;
       g.hidden = !show;
       if (!show) return;
       var key = g.dataset.opt;
@@ -596,6 +597,23 @@
       render();
     });
   });
+
+  /* quick start shows the main choices; "Customise" opens sizes, cupboards and the rest */
+  var advanced = false;
+  try { advanced = localStorage.getItem('jc-designer-adv') === '1'; } catch (e) {}
+  var advBtn = document.getElementById('advToggle');
+  function syncAdv() {
+    root.classList.toggle('is-advanced', advanced);
+    if (advBtn) advBtn.setAttribute('aria-expanded', String(advanced));
+  }
+  if (advBtn) advBtn.addEventListener('click', function () {
+    advanced = !advanced;
+    try { localStorage.setItem('jc-designer-adv', advanced ? '1' : '0'); } catch (e) {}
+    syncAdv();
+    syncControls();
+    if (!advanced) advBtn.scrollIntoView({ block: 'nearest' });
+  });
+  syncAdv();
 
   var lastPickFromRandom = false;
   root.addEventListener('click', function (e) {

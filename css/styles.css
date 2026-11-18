@@ -583,3 +583,13 @@ body.d3-locked { overflow: hidden; }
 .supplier .mat-links { margin: auto 0 0; }
 @media (max-width: 760px) { .supplier-grid { grid-template-columns: 1fr; } }
 .supplier-photo.is-missing figcaption { display: none; }
+
+/* designer: quick start, with everything else behind "Customise" */
+.adv-toggle { display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; margin: 1rem 0 .25rem; padding: .85rem 1.1rem; border: 1.5px dashed var(--oak); border-radius: 14px; background: #fbf3ea; color: var(--oak-dark); font: inherit; font-weight: 700; font-size: .95rem; text-align: left; }
+.adv-toggle::after { content: ''; width: .55rem; height: .55rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform .2s; flex: none; }
+.adv-toggle:hover { background: #f6e8d8; }
+.adv-less { display: none; }
+.is-advanced .adv-toggle { border-style: solid; background: var(--white); }
+.is-advanced .adv-toggle::after { transform: rotate(-135deg) translateY(-2px); }
+.is-advanced .adv-more { display: none; }
+.is-advanced .adv-less { display: inline; }
