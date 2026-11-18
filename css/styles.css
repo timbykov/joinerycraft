@@ -324,8 +324,8 @@ legend { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; margin-
   body { padding-bottom: 72px; }
   .section { padding: 4.25rem 0; }
   .header-phone, .header-actions > .btn { display: none; }
-    .hero { min-height: 88vh; }
-  .hero-inner { padding-bottom: 3rem; }
+  .hero { min-height: 0; }
+  .hero-inner { padding-top: 2rem; padding-bottom: 2.5rem; }
   .hero-shade { background: linear-gradient(0deg, rgba(20,18,15,.9) 0%, rgba(20,18,15,.55) 55%, rgba(20,18,15,.25) 100%); }
   .hero-actions .btn { width: 100%; }
   .services-grid, .steps { grid-template-columns: 1fr; }
@@ -419,7 +419,6 @@ legend { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; margin-
 
 /* Netlify's free-plan "Powered by Netlify" badge (injected iframe): pin it to the very bottom of the page, under the footer's Privacy line, instead of floating */
 body { position: relative; }
-.site-footer { padding-bottom: 5rem; }
 #nl-badge-frame { position: absolute !important; top: auto !important; bottom: 10px !important; left: 50% !important; right: auto !important; transform: translateX(-50%) scale(.8) !important; transform-origin: bottom center !important; opacity: .8; z-index: 800 !important; }
 @media (max-width: 640px) {
   body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
@@ -766,3 +765,12 @@ body.d3-locked { overflow: hidden; }
 .pick-sub { font-size: .9rem; color: var(--muted, #6b645b); padding: .2rem 1rem 0; line-height: 1.4; }
 @media (max-width: 900px) { .pick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; } .pick-card { padding-bottom: .8rem; } .pick-card img { margin-bottom: .6rem; } .pick-name { font-size: 1.1rem; padding: 0 .75rem; } .pick-sub { padding: .15rem .75rem 0; font-size: .82rem; } .pick-lead { font-size: 1.25rem; } }
 .designer[hidden], .designer-pick[hidden] { display: none; }
+
+/* phones: tighter footer (the page already leaves room for the Call / Free quote bar) */
+@media (max-width: 640px) {
+  .hero, .hero-sub { min-height: 0; }
+  .site-footer { padding: 3rem 0 1.25rem; }
+  .footer-grid { gap: 1.75rem; padding-bottom: 1.75rem; }
+  .footer-bottom { padding-top: 1.25rem; }
+}
+.footer-bottom .footer-privacy { margin-left: .6rem; white-space: nowrap; }
