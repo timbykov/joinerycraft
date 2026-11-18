@@ -169,7 +169,7 @@
        Anywhere else (e.g. Cloudflare Pages) it goes to Web3Forms once
        WEB3FORMS_KEY is filled in. Get a free key at web3forms.com using
        the business email; that is where enquiries will arrive. */
-    var WEB3FORMS_KEY = '';
+    var WEB3FORMS_KEY = 'dc49c959-89b8-4237-a3fa-7b38894c377f';
     var onNetlify = /netlify\.app$/.test(location.hostname) || !WEB3FORMS_KEY;
     if (!onNetlify) {
       var fileField = form.querySelector('input[type=file]');
