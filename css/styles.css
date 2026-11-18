@@ -83,7 +83,7 @@ button { font: inherit; cursor: pointer; }
 .header-inner { height: var(--header-h); display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
 .brand { display: flex; align-items: center; gap: .7rem; text-decoration: none; flex-shrink: 0; }
 .brand-mark { width: 40px; height: 40px; border-radius: 50%; }
-.wordmark { height: 13px; width: auto; }
+.wordmark { height: 12px; width: auto; }
 .main-nav { display: flex; gap: 1.75rem; }
 .main-nav a { text-decoration: none; font-size: .93rem; font-weight: 500; color: var(--muted); }
 .main-nav a:hover { color: var(--ink); }
