@@ -369,8 +369,8 @@ legend { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; margin-
   .opt-swatch { padding: .3rem; }
   .dot { width: 30px; height: 30px; }
 }
-.mode-tabs { display: inline-grid; grid-template-columns: 1fr 1fr; background: var(--tint); border-radius: 999px; padding: 4px; margin-bottom: 1.25rem; }
-.mode-tab { border: 0; background: transparent; padding: .55rem 1.4rem; border-radius: 999px; font-weight: 700; font-size: .92rem; color: var(--muted); }
+.mode-tabs { display: inline-grid; grid-template-columns: repeat(4, auto); max-width: 100%; background: var(--tint); border-radius: 999px; padding: 4px; margin-bottom: 1.25rem; }
+.mode-tab { border: 0; background: transparent; padding: .55rem 1.15rem; border-radius: 999px; font-weight: 700; font-size: .92rem; color: var(--muted); }
 .mode-tab.is-active { background: var(--ink); color: #fff; }
 .opt-group[hidden] { display: none; }
 .google-badge { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .55rem; margin-top: .5rem; padding: .6rem 1.1rem; border-radius: 999px; background: #fff; color: var(--ink); text-decoration: none; font-size: .9rem; box-shadow: var(--shadow); transition: transform .2s; }
@@ -715,3 +715,4 @@ body.d3-locked { overflow: hidden; }
   .designer-stage .design-save { margin-top: .85rem; }
 }
 @media (min-width: 901px) { #designPreview svg { max-height: clamp(300px, calc(100vh - var(--header-h) - 390px), 580px); margin: 0 auto; } }
+@media (max-width: 420px) { .mode-tab { padding: .5rem .75rem; font-size: .86rem; } }

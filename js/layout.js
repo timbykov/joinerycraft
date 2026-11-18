@@ -6,13 +6,26 @@
   'use strict';
 
   var KICK = 0.15, BASE_TOP = 0.87, BENCH_T = 0.04, BASE_D = 0.58, UP_BOT = 1.5, UP_TOP = 2.2, UP_D = 0.34, TALL_TOP = 2.2;
-  var CEIL = 2.7, FRIDGE_W = 0.92, W_D = 0.6;
+  var CEIL = 2.7, FRIDGE_W = 0.92, W_D = 0.6, FLOAT = false, BULK = true;
   var DIMS = {};
-  /* heights and depths the customer can change (Customise > Heights & depths) */
+  /* heights and depths the customer can change (Customise > Heights & depths).
+     Kitchens and laundries share one set of sizes; vanities are lower, shallower and can be wall-hung. */
   function setDims(mode, s) {
     var c = function (v, d, lo, hi) { v = +v || d; return Math.min(hi, Math.max(lo, v)); };
     if (mode === 'wardrobe') { W_D = c(s.wdepth, 0.6, 0.45, 0.7); CEIL = 2.7; }
-    else {
+    else if (mode === 'vanity') {
+      BENCH_T = 0.02;
+      BASE_TOP = c(s.benchH, 0.85, 0.8, 0.95) - BENCH_T;
+      BASE_D = c(s.baseD, 0.46, 0.38, 0.56) - 0.02;
+      FLOAT = s.mount !== 'floor';
+      KICK = FLOAT ? Math.max(0.2, BASE_TOP - 0.5) : 0.15; // wall-hung: a 500 mm high cabinet off the floor
+      UP_BOT = BASE_TOP + BENCH_T + 0.35;
+      UP_TOP = UP_BOT + 0.75;
+      TALL_TOP = UP_TOP;
+      UP_D = 0.15;
+      CEIL = 2.4; BULK = false;
+    } else {
+      BENCH_T = 0.04; KICK = 0.15; UP_BOT = 1.5; FLOAT = false; BULK = true;
       BASE_TOP = c(s.benchH, 0.91, 0.85, 0.95) - BENCH_T;
       BASE_D = c(s.baseD, 0.6, 0.56, 0.7) - 0.02;
       UP_D = c(s.upD, 0.34, 0.3, 0.4);
@@ -22,7 +35,7 @@
       FRIDGE_W = c(s.fridgeW, 0.92, 0.7, 1.0);
     }
     DIMS.KICK = KICK; DIMS.BASE_TOP = BASE_TOP; DIMS.BENCH_T = BENCH_T; DIMS.BASE_D = BASE_D; DIMS.UP_BOT = UP_BOT; DIMS.UP_TOP = UP_TOP;
-    DIMS.UP_D = UP_D; DIMS.TALL_TOP = TALL_TOP; DIMS.CEIL = CEIL; DIMS.FRIDGE_W = FRIDGE_W; DIMS.W_D = W_D;
+    DIMS.UP_D = UP_D; DIMS.TALL_TOP = TALL_TOP; DIMS.CEIL = CEIL; DIMS.FRIDGE_W = FRIDGE_W; DIMS.W_D = W_D; DIMS.FLOAT = FLOAT; DIMS.BULK = BULK;
     return { benchH: BASE_TOP + BENCH_T, baseD: BASE_D + 0.02, upD: UP_D, upTop: UP_TOP, fridgeW: FRIDGE_W, wdepth: W_D };
   }
   var SECTION = { hang: 'Long hanging', hang2: 'Double hanging', shelf: 'Shelves', drawers: 'Drawers + shelves', shoes: 'Shoe shelves' };
@@ -158,6 +171,64 @@
     };
   }
 
+
+  /* ---------------- laundry ---------------- */
+  /* tub, cupboards, washer and dryer under the bench (or stacked in a tall space), optional broom cupboard */
+  function laundry(s) {
+    var mach = s.machines || 'stacked';
+    var talls = [];
+    if (mach === 'stacked') talls.push({ w: 0.7, kind: 'stack' });
+    if (s.broom === 'on') talls.push({ w: 0.45, kind: 'broom' });
+    var tallW = talls.reduce(function (a, t) { return a + t.w; }, 0);
+    var app = mach === 'side' ? [{ kind: 'washer', w: 0.65 }, { kind: 'dryer', w: 0.65 }] : mach === 'washer' ? [{ kind: 'washer', w: 0.65 }] : [];
+    var appW = app.reduce(function (a, t) { return a + t.w; }, 0);
+    var minW = r1(tallW + 0.6 + appW);
+    var W = clamp(s.lwall || 2.4, Math.max(1.2, minW), 4.0), B = r1(W - tallW);
+    var rest = B - 0.6 - appW, items = [], x = 0;
+    var tubW = rest < 0.3 ? 0.6 + rest : 0.6;
+    items.push({ t: 'base', x: 0, w: r1(tubW), kind: 'tub' });
+    x = tubW;
+    if (rest >= 0.3) {
+      var n = Math.max(1, Math.round(rest / 0.6)), cw = rest / n;
+      for (var i = 0; i < n; i++) { items.push({ t: 'base', x: r1(x), w: r1(cw), kind: i === 0 ? 'drawers' : 'door' }); x += cw; }
+    }
+    app.forEach(function (a) { items.push({ t: 'base', x: r1(x), w: a.w, kind: a.kind }); x += a.w; });
+    tallUnits(talls, W, items);
+    var ups = s.overheads || 'full';
+    if (ups !== 'none') upperUnits(0, B, ups, items);
+    var back = { id: 'back', label: 'Laundry wall', len: W, pos: [-W / 2, 0], rot: 0, bench: [0, B], splash: [0, B], items: items };
+    return {
+      kind: 'laundry', shape: 'straight', runs: [back], island: null, room: { w: Math.max(W, 2.4), d: 2.6, h: 2.7, sideWalls: false },
+      limits: { lwall: [Math.max(1.2, minW), 4.0] }, counts: {}, sizes: { lwall: W },
+      target: [0, 1.1, 0.5], radius: Math.max(4.2, W * 1.2 + 1.8)
+    };
+  }
+
+  /* ---------------- vanity ---------------- */
+  /* wall-hung or floor-standing vanity, one or two above-counter basins, mirror or shaving cabinet, optional linen tower */
+  function vanity(s) {
+    var tower = s.tower === 'on' ? 0.4 : 0;
+    var minW = r1(0.6 + tower);
+    var W = clamp(s.vwall || 1.2, Math.max(0.6, minW), 2.4), B = r1(W - tower);
+    var nb = s.basins === 'double' && B >= 1.2 ? 2 : 1;
+    var n = Math.max(1, Math.round(B / 0.6)), cw = B / n, items = [];
+    for (var i = 0; i < n; i++) items.push({ t: 'base', x: r1(i * cw), w: r1(cw), kind: s.vfront === 'doors' ? 'door' : 'drawers', dn: 2 });
+    if (tower) items.push({ t: 'tall', x: r1(B), w: tower, kind: 'linen' });
+    var basins = [];
+    for (var b = 0; b < nb; b++) basins.push(r1(B * (b + 0.5) / nb));
+    var mir = s.mirror || 'round';
+    if (mir !== 'none') basins.forEach(function (cx) {
+      var mw = mir === 'cabinet' ? Math.min(0.9, B / nb - 0.08) : Math.min(0.64, B / nb - 0.1);
+      items.push({ t: 'mirror', x: r1(cx - mw / 2), w: r1(mw), kind: mir });
+    });
+    var back = { id: 'back', label: 'Vanity wall', len: W, pos: [-W / 2, 0], rot: 0, bench: [0, B], splash: null, items: items, basins: basins };
+    return {
+      kind: 'vanity', shape: 'straight', runs: [back], island: null, room: { w: Math.max(W + 1, 2.4), d: 2.2, h: 2.4, sideWalls: false },
+      limits: { vwall: [Math.max(0.6, minW), 2.4] }, counts: { basins: nb }, sizes: { vwall: W },
+      target: [0, 1.0, 0.35], radius: Math.max(3.0, W * 1.35 + 1.5)
+    };
+  }
+
   /* ---------------- wardrobes ---------------- */
   function builtin(s) {
     var W = clamp(s.width || 2.4, 0.9, 4.8), H = clamp(s.height || 2.4, 2.1, 2.7);
@@ -228,7 +299,7 @@
 
   function build(mode, s) {
     var ds = setDims(mode, s);
-    var m = mode === 'wardrobe' ? (s.wtype === 'walkin' ? walkin(s) : builtin(s)) : kitchen(s);
+    var m = mode === 'wardrobe' ? (s.wtype === 'walkin' ? walkin(s) : builtin(s)) : mode === 'laundry' ? laundry(s) : mode === 'vanity' ? vanity(s) : kitchen(s);
     m.sizes = m.sizes || {};
     Object.keys(ds).forEach(function (k) { if (m.sizes[k] === undefined) m.sizes[k] = ds[k]; });
     return m;

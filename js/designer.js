@@ -59,6 +59,13 @@
     door: 'flat', base: 'p-prime-oak', upper: 'p-classic-white', bench: 'cs-empira-white', splash: 'stone', handle: 'brass' };
   var ws = { wtype: 'builtin', wdoors: 'hinged', door: 'flat', finish: 'p-prime-oak', internals: 'balanced', light: 'on', handle: 'black',
     width: 2.4, height: 2.4, doorCount: 0, panelCount: 0, bsec: [], showInside: 'off', wshape: 'u', wwidth: 3.2, wside: 1.6, wcount: {}, wsec: {} };
+  /* laundry: sage green shaker base, white overheads, stacked washer and dryer with a broom cupboard */
+  var ls = { lwall: 2.4, machines: 'stacked', broom: 'on', overheads: 'full',
+    door: 'shaker', base: 'p-oasis', upper: 'p-classic-white', bench: 'cs-empira-white', splash: 'subway', handle: 'brass' };
+  /* vanity: wall-hung oak with a white stone top, above-counter basin and a round mirror */
+  var vs = { vwall: 1.2, mount: 'wall', basins: 'single', vfront: 'drawers', mirror: 'round', tower: 'off',
+    door: 'flat', base: 'p-prime-oak', upper: 'p-prime-oak', bench: 'cs-empira-white', handle: 'brass' };
+  var STATES = { kitchen: ks, laundry: ls, vanity: vs, wardrobe: ws };
   var mode = 'kitchen';
   var state = ks;
 
@@ -182,7 +189,7 @@
   /* ---------- shared layout model (js/layout.js) ---------- */
   var L = window.JCLayout, DIM = L.dims;
   var model = null;
-  function build() { model = L.build(mode, state); return model; }
+  function build() { if (mode === 'vanity') vs.upper = vs.base; model = L.build(mode, state); return model; }
   function mm(v) { return Math.round(v * 1000); }
 
   var DEFS_COMMON = '<pattern id="oak" width="60" height="16" patternUnits="userSpaceOnUse"><rect width="60" height="16" fill="#c9a06e"/><path d="M0 4 Q15 2 30 5 T60 4" stroke="#b48a58" stroke-width="1.4" fill="none"/><path d="M0 11 Q20 13 35 10 T60 12" stroke="#d8b483" stroke-width="1.2" fill="none"/></pattern>' +
@@ -236,7 +243,7 @@
     var base = find(CABINET, state.base), upper = find(CABINET, state.upper), bench = find(BENCH, state.bench);
     var back = m.runs[0], W = back.len;
     var SW = 800, SH = 520, floorY = 446;
-    var k = Math.min(150, 640 / W), x0 = (SW - W * k) / 2;
+    var k = m.kind === 'vanity' ? Math.min(200, 600 / W) : Math.min(150, 640 / W), x0 = (SW - W * k) / 2;
     if (m.shape !== 'straight' || m.island) x0 = Math.max(x0, Math.min(150, SW - 20 - W * k));
     function X(v) { return x0 + v * k; }
     function Y(v) { return floorY - v * k; }
@@ -249,11 +256,18 @@
     if (back.splash && state.overheads !== 'none') svg += rect(X(back.splash[0]), Y(DIM.UP_BOT), (back.splash[1] - back.splash[0]) * k, (DIM.UP_BOT - bTop) * k, splashFill);
     else if (back.splash) svg += rect(X(back.splash[0]), Y(bTop + 0.3), (back.splash[1] - back.splash[0]) * k, 0.3 * k, splashFill);
     var bH = DIM.BASE_TOP - DIM.KICK;
+    function machine2d(x, y0, w, kind) {
+      var mw = Math.min(0.6, it2w(w)) * k, mx = x + (w - mw) / 2, mh = 0.84 * k, cy = Y(y0 + 0.38);
+      return rect(mx, Y(y0 + 0.84), mw, mh, '#f2f2f0', ' rx="4" stroke="#cfd0cf"') + rect(mx + 6, Y(y0 + 0.8), mw - 12, 5, '#3a3a3a', ' rx="2"') +
+        '<circle cx="' + (mx + mw / 2) + '" cy="' + cy + '" r="' + (0.2 * k) + '" fill="#b9bdc1"/><circle cx="' + (mx + mw / 2) + '" cy="' + cy + '" r="' + (0.16 * k) + '" fill="' + (kind === 'dryer' ? '#2b2b2b' : '#4a4d50') + '"/>';
+    }
+    function it2w(wpx) { return wpx / k - 0.03; }
     back.items.forEach(function (it, i) {
       var x = X(it.x), w = it.w * k;
+      if (it.t === 'base' && (it.kind === 'washer' || it.kind === 'dryer')) { svg += machine2d(x, 0, w, it.kind); return; }
       if (it.t === 'base') {
-        var top = Y(DIM.BASE_TOP), h = bH * k;
-        if (it.kind === 'drawers') { for (var q = 0; q < 3; q++) svg += door(x, top + q * h / 3, w, h / 3, base, { drawer: true }); }
+        var top = Y(DIM.BASE_TOP), h = bH * k, dn = it.dn || 3;
+        if (it.kind === 'drawers') { for (var q = 0; q < dn; q++) svg += door(x, top + q * h / dn, w, h / dn, base, { drawer: true }); }
         else if (it.kind === 'oven') {
           svg += door(x, top, w, 0.16 * k, base, { drawer: true });
           svg += rect(x + 3, top + 0.17 * k, w - 6, h - 0.18 * k, '#1f1f1f', ' rx="3"') + rect(x + 8, top + 0.22 * k, w - 16, 6, '#3c3c3c', ' rx="2"') + rect(x + 10, top + 0.3 * k, w - 20, h - 0.36 * k, '#2b2b2b', ' rx="2"');
@@ -265,11 +279,20 @@
             door(x, top, w - pw, h, base, { hingeLeft: true }) + rect(x + w - pw, top, pw, h, base.fill, ' stroke="' + base.edge + '"');
         } else if (it.w > 0.65) { svg += door(x, top, w / 2, h, base, { hingeLeft: false }) + door(x + w / 2, top, w / 2, h, base, { hingeLeft: true }); }
         else svg += door(x, top, w, h, base, { hingeLeft: i % 2 === 1 });
-        if (it.kind === 'sink') {
+        if (it.kind === 'sink' || it.kind === 'tub') {
           var tx = x + w / 2;
           svg += '<path d="M' + tx + ' ' + Y(bTop) + ' V' + (Y(bTop) - 0.24 * k) + ' Q' + tx + ' ' + (Y(bTop) - 0.3 * k) + ' ' + (tx + 10) + ' ' + (Y(bTop) - 0.3 * k) + ' Q' + (tx + 19) + ' ' + (Y(bTop) - 0.3 * k) + ' ' + (tx + 19) + ' ' + (Y(bTop) - 0.22 * k) + '" stroke="' + metal + '" stroke-width="4" fill="none" stroke-linecap="round"/>';
         }
-        svg += rect(x, Y(DIM.KICK), w, DIM.KICK * k, 'rgba(0,0,0,.35)');
+        if (!DIM.FLOAT) svg += rect(x, Y(DIM.KICK), w, DIM.KICK * k, 'rgba(0,0,0,.35)');
+      } else if (it.t === 'mirror') {
+        if (it.kind === 'cabinet') {
+          var nd = it.w > 0.65 ? 2 : 1;
+          svg += rect(x, Y(DIM.UP_TOP), w, (DIM.UP_TOP - DIM.UP_BOT) * k, upper.fill, ' stroke="' + upper.edge + '"');
+          for (var mq = 0; mq < nd; mq++) svg += rect(x + mq * w / nd + 2, Y(DIM.UP_TOP) + 2, w / nd - 4, (DIM.UP_TOP - DIM.UP_BOT) * k - 4, 'url(#mirror)', ' stroke="#c9cfd3"');
+        } else {
+          var rr = Math.min(0.32, it.w / 2) * k;
+          svg += '<circle cx="' + (x + w / 2) + '" cy="' + Y((DIM.UP_TOP + DIM.UP_BOT) / 2) + '" r="' + rr + '" fill="url(#mirror)" stroke="' + metal + '" stroke-width="4"/>';
+        }
       } else if (it.t === 'upper') {
         svg += door(x, Y(DIM.UP_TOP), w, (DIM.UP_TOP - DIM.UP_BOT) * k, upper, { upper: true, hingeLeft: it.hingeLeft });
       } else if (it.t === 'shelf') {
@@ -282,9 +305,14 @@
         svg += '<path d="M' + (x - 6) + ' ' + Y(1.78) + ' H' + (x + w + 6) + ' L' + (x + w) + ' ' + Y(1.7) + ' H' + x + ' Z" fill="#9b9ea1"/>';
       } else if (it.t === 'tall') {
         var tTop = Y(DIM.TALL_TOP);
-        if (it.kind === 'pantry') {
-          svg += door(x, tTop, w / 2, (DIM.TALL_TOP - DIM.KICK) * k, upper, { hingeLeft: false, tall: true }) + door(x + w / 2, tTop, w / 2, (DIM.TALL_TOP - DIM.KICK) * k, upper, { hingeLeft: true, tall: true });
-          svg += rect(x, Y(DIM.KICK), w, DIM.KICK * k, 'rgba(0,0,0,.35)');
+        if (it.kind === 'pantry' || it.kind === 'broom' || it.kind === 'linen') {
+          var tc = it.kind === 'linen' ? base : upper, th = (DIM.TALL_TOP - DIM.KICK) * k;
+          svg += it.w > 0.65 ? door(x, tTop, w / 2, th, tc, { hingeLeft: false, tall: true }) + door(x + w / 2, tTop, w / 2, th, tc, { hingeLeft: true, tall: true }) : door(x, tTop, w, th, tc, { hingeLeft: false, tall: true });
+          if (!DIM.FLOAT) svg += rect(x, Y(DIM.KICK), w, DIM.KICK * k, 'rgba(0,0,0,.35)');
+        } else if (it.kind === 'stack') {
+          svg += door(x, tTop, w, (DIM.TALL_TOP - 1.8) * k, upper, { upper: true, hingeLeft: true });
+          svg += rect(x, Y(1.8), w, 1.8 * k, '#d6d0c6') + rect(x, Y(1.8), 3, 1.8 * k, upper.fill) + rect(x + w - 3, Y(1.8), 3, 1.8 * k, upper.fill);
+          svg += machine2d(x, 0, w, 'washer') + machine2d(x, 0.88, w, 'dryer');
         } else {
           svg += door(x, tTop, w, 0.3 * k, upper, { upper: true, hingeLeft: true });
           svg += rect(x, Y(1.9), w, 1.9 * k, '#d6d0c6');
@@ -293,6 +321,12 @@
       }
     });
     if (back.bench) svg += rect(X(back.bench[0]) - 4, Y(bTop), (back.bench[1] - back.bench[0]) * k + 8, DIM.BENCH_T * k + 1, bench.fill, ' stroke="rgba(0,0,0,.12)"');
+    if (DIM.FLOAT) svg += '<ellipse cx="' + X(W / 2) + '" cy="' + (floorY + 4) + '" rx="' + (W * k / 2) + '" ry="6" fill="rgba(0,0,0,.08)"/>';
+    (back.basins || []).forEach(function (cx) {
+      var bx = X(cx);
+      svg += '<path d="M' + bx + ' ' + Y(bTop + 0.3) + ' h-3 M' + (bx - 12) + ' ' + Y(bTop + 0.3) + ' H' + (bx + 4) + '" stroke="' + metal + '" stroke-width="5" stroke-linecap="round"/>';
+      svg += '<path d="M' + (bx - 0.2 * k) + ' ' + Y(bTop + 0.13) + ' H' + (bx + 0.2 * k) + ' L' + (bx + 0.15 * k) + ' ' + Y(bTop) + ' H' + (bx - 0.15 * k) + ' Z" fill="#fbfbf9" stroke="#d6d2ca" stroke-width="1.2"/>';
+    });
     // side runs seen end-on
     m.runs.forEach(function (r) {
       if (r.id !== 'left' && r.id !== 'right') return;
@@ -490,7 +524,7 @@
     document.getElementById('designSummary').textContent = summary();
     root.querySelectorAll('.opt-group').forEach(function (g) {
       var only = g.dataset.only;
-      var show = g.dataset.mode === mode;
+      var show = (' ' + g.dataset.mode + ' ').indexOf(' ' + mode + ' ') > -1;
       if (show && only) {
         if (only === 'builtin' || only === 'walkin') show = ws.wtype === only;
         else show = ws.wtype === 'builtin' && ws.wdoors === only;
@@ -571,7 +605,10 @@
   function summary() {
     var t = summaryCore(), D2 = L.dims, x = [];
     if (mode === 'wardrobe') { if (Math.abs(D2.W_D - 0.6) > 0.005) x.push(mm(D2.W_D) + ' mm deep'); }
-    else {
+    else if (mode === 'vanity') {
+      if (Math.abs(D2.BASE_TOP + D2.BENCH_T - 0.85) > 0.005) x.push(mm(D2.BASE_TOP + D2.BENCH_T) + ' mm high');
+      if (Math.abs(D2.BASE_D - 0.44) > 0.005) x.push(mm(D2.BASE_D + 0.02) + ' mm deep');
+    } else {
       if (Math.abs(D2.UP_TOP - 2.2) > 0.005) x.push(mm(D2.UP_TOP) + ' mm to top of cupboards');
       if (Math.abs(D2.BASE_TOP + D2.BENCH_T - 0.91) > 0.005) x.push(mm(D2.BASE_TOP + D2.BENCH_T) + ' mm bench height');
       if (Math.abs(D2.BASE_D - 0.58) > 0.005) x.push(mm(D2.BASE_D + 0.02) + ' mm deep base cupboards');
@@ -583,6 +620,8 @@
   function summaryCore() {
     if (!model) build();
     if (mode === 'wardrobe') return wardrobeSummary();
+    if (mode === 'laundry') return laundrySummary();
+    if (mode === 'vanity') return vanitySummary();
     var m = model;
     var base = cname(find(CABINET, state.base)), upper = cname(find(CABINET, state.upper));
     var colours = base === upper ? base : base + ' base with ' + upper + ' overheads';
@@ -600,10 +639,33 @@
       cname(find(BENCH, state.bench)) + ' benchtop, ' + LABELS.splash[state.splash] + ', ' + handles + '.';
   }
 
+  function doorsIn(colours) {
+    var d = LABELS.door[state.door];
+    return d.charAt(0).toUpperCase() + d.slice(1) + ' in ' + colours;
+  }
+  function handlesText() {
+    return state.door === 'fingerpull' ? 'fingerpull (no handles)' : find(HANDLE, state.handle).name.toLowerCase() + (state.handle === 'none' ? '' : ' handles');
+  }
+  function laundrySummary() {
+    var m = model, base = cname(find(CABINET, state.base)), upper = cname(find(CABINET, state.upper));
+    var colours = base === upper ? base : base + ' base with ' + upper + ' overheads';
+    var mach = { stacked: 'stacked washer and dryer tower', side: 'washer and dryer side by side under the bench', washer: 'washer under the bench' }[state.machines];
+    var ups = { full: '', shelves: ', open shelves instead of overheads', none: ', no overheads' }[state.overheads] || '';
+    return 'Laundry, ' + mm(m.sizes.lwall) + ' mm wall, laundry tub, ' + mach + (state.broom === 'on' ? ', broom cupboard' : '') + ups + '. ' +
+      doorsIn(colours) + ', ' + cname(find(BENCH, state.bench)) + ' benchtop, ' + LABELS.splash[state.splash] + ', ' + handlesText() + '.';
+  }
+  function vanitySummary() {
+    var m = model, nb = m.counts.basins;
+    var mir = { round: nb > 1 ? 'round mirrors' : 'round mirror', cabinet: nb > 1 ? 'mirror shaving cabinets' : 'mirror shaving cabinet', none: '' }[state.mirror];
+    return (state.mount === 'floor' ? 'Floor-standing' : 'Wall-hung') + ' vanity, ' + mm(m.sizes.vwall) + ' mm wide, ' + (nb > 1 ? 'two above-counter basins' : 'above-counter basin') +
+      ', ' + (state.vfront === 'doors' ? 'doors' : 'drawers') + (state.tower === 'on' ? ', linen tower' : '') + (mir ? ', ' + mir : '') + '. ' +
+      doorsIn(cname(find(CABINET, state.base))) + ', ' + cname(find(BENCH, state.bench)) + ' top, ' + handlesText() + '.';
+  }
+
   root.querySelectorAll('[data-mode-tab]').forEach(function (t) {
     t.addEventListener('click', function () {
       mode = t.dataset.modeTab;
-      state = mode === 'kitchen' ? ks : ws;
+      state = STATES[mode] || ks;
       root.querySelectorAll('[data-mode-tab]').forEach(function (x) {
         var on = x === t;
         x.classList.toggle('is-active', on);
@@ -691,6 +753,26 @@
       ws.handle = pick(HANDLE).val;
       return render();
     }
+    state.door = pick(['flat', 'shaker', 'fingerpull']);
+    state.base = pick(CABINET).val;
+    state.bench = pick(BENCH).val;
+    state.handle = pick(HANDLE).val;
+    if (mode === 'laundry') {
+      state.machines = pick(['stacked', 'side', 'washer']);
+      state.broom = pick(['on', 'off']);
+      state.overheads = pick(['full', 'full', 'shelves']);
+      state.upper = Math.random() < 0.55 ? 'p-classic-white' : state.base;
+      state.splash = pick(['subway', 'stone', 'glass']);
+      return render();
+    }
+    if (mode === 'vanity') {
+      state.mount = pick(['wall', 'wall', 'floor']);
+      state.basins = pick(['single', 'double']);
+      state.vfront = pick(['drawers', 'doors']);
+      state.mirror = pick(['round', 'cabinet']);
+      state.tower = pick(['on', 'off', 'off']);
+      return render();
+    }
     state.shape = pick(['straight', 'straight', 'l', 'u', 'galley']);
     state.island = state.shape === 'u' ? 'off' : pick(['on', 'on', 'off']);
     state.pantry = pick(['on', 'off']);
@@ -716,7 +798,7 @@
     if (!form) return;
     var details = form.querySelector('#details');
     if (details && details.value.indexOf('My design:') === -1) details.value = text + (details.value ? '\n' + details.value : '');
-    var radio = form.querySelector('input[name=project][value="' + (mode === 'wardrobe' ? 'Wardrobes' : 'Kitchen') + '"]');
+    var radio = form.querySelector('input[name=project][value="' + { kitchen: 'Kitchen', wardrobe: 'Wardrobes', laundry: 'Laundry', vanity: 'Vanity / bathroom' }[mode] + '"]');
     if (radio) {
       radio.checked = true;
       radio.dispatchEvent(new Event('change', { bubbles: true }));
@@ -800,7 +882,7 @@
 
   /* ---------- saving: auto-save on this device + a link that reopens the design anywhere ---------- */
   var SAVE_KEY = 'jc-design-v1';
-  function snapshot() { return { v: 1, mode: mode, k: ks, w: ws }; }
+  function snapshot() { return { v: 1, mode: mode, k: ks, w: ws, l: ls, b: vs }; }
   function enc(o) { return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
   function dec(t) { t = t.replace(/-/g, '+').replace(/_/g, '/'); while (t.length % 4) t += '='; return JSON.parse(decodeURIComponent(escape(atob(t)))); }
   function designLink() { return location.origin + '/?d=' + enc(snapshot()) + '#design'; }
@@ -808,7 +890,9 @@
     if (!o || o.v !== 1) return false;
     if (o.k) Object.keys(o.k).forEach(function (k) { if (k in ks || /^(benchH|baseD|upD|upTop|fridgeW)$/.test(k)) ks[k] = o.k[k]; });
     if (o.w) Object.keys(o.w).forEach(function (k) { if (k in ws || k === 'wdepth') ws[k] = o.w[k]; });
-    if (o.mode === 'wardrobe' || o.mode === 'kitchen') {
+    if (o.l) Object.keys(o.l).forEach(function (k) { if (k in ls || /^(benchH|baseD|upD|upTop)$/.test(k)) ls[k] = o.l[k]; });
+    if (o.b) Object.keys(o.b).forEach(function (k) { if (k in vs || /^(benchH|baseD)$/.test(k)) vs[k] = o.b[k]; });
+    if (STATES[o.mode]) {
       var tab = root.querySelector('[data-mode-tab="' + o.mode + '"]');
       if (tab && o.mode !== mode) tab.click();
     }

@@ -160,7 +160,9 @@
     bulb: new T.MeshBasicMaterial({ color: '#fff6dd' }),
     leaf: std('#6f8f5f', 0.8),
     pot: std('#d9d2c7', 0.7),
-    stool: std('#6b5a4a', 0.7)
+    stool: std('#6b5a4a', 0.7),
+    appliance: std('#f2f2f0', 0.35, 0.05),
+    ceramic: std('#fbfbf9', 0.18, 0.02)
   };
   var CLOTHES = ['#8d9aa8', '#d9c9b3', '#5d6a63', '#b88a7a', '#e8e3da', '#3f4650', '#a7b49c', '#c9b28f'].map(function (c) { return std(c, 0.9); });
 
@@ -260,12 +262,29 @@
     parent.add(arc);
   }
 
+  /* front-loading washer or dryer, for laundries */
+  function machine(g, x, y, w, kind) {
+    var mw = Math.min(0.6, w - 0.03), mx = x + (w - mw) / 2, mh = 0.84, md = 0.58;
+    box(g, mx, y, 0.02, mw, mh, md, M.appliance);
+    box(g, mx + 0.03, y + mh - 0.1, 0.02 + md, mw - 0.06, 0.06, 0.006, M.black, true);
+    var ring = new T.Mesh(new T.CylinderGeometry(0.2, 0.2, 0.03, 24), M.steel);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(mx + mw / 2, y + 0.38, 0.02 + md + 0.015);
+    g.add(ring);
+    var glassD = new T.Mesh(new T.CylinderGeometry(0.16, 0.16, 0.035, 24), kind === 'dryer' ? M.black : M.glass);
+    glassD.rotation.x = Math.PI / 2;
+    glassD.position.set(mx + mw / 2, y + 0.38, 0.02 + md + 0.02);
+    g.add(glassD);
+  }
+
   function kitchenItem(g, it, i, c) {
     var x = it.x, w = it.w, st = c.st, hd = c.hd, h = BASE_TOP - KICK, bTop = BASE_TOP + BENCH_T;
+    if (it.t === 'base' && (it.kind === 'washer' || it.kind === 'dryer')) { machine(g, x, 0, w, it.kind); return; }
     if (it.t === 'base') {
       box(g, x, KICK, 0, w, h, D0 - 0.002, c.baseM);
-      box(g, x, 0, 0, w, KICK, D0 - 0.06, M.kick);
-      if (it.kind === 'drawers') { for (var k = 0; k < 3; k++) front(g, x, KICK + k * h / 3, D0, w, h / 3, c.baseM, { style: st, handle: hd, drawer: true }); }
+      if (!DM.FLOAT) box(g, x, 0, 0, w, KICK, D0 - 0.06, M.kick);
+      var dn = it.dn || 3;
+      if (it.kind === 'drawers') { for (var k = 0; k < dn; k++) front(g, x, KICK + k * h / dn, D0, w, h / dn, c.baseM, { style: st, handle: hd, drawer: true }); }
       else if (it.kind === 'oven') {
         front(g, x, BASE_TOP - 0.16, D0, w, 0.16, c.baseM, { style: st, handle: hd, drawer: true });
         box(g, x + 0.02, KICK + 0.02, D0, w - 0.04, h - 0.2, 0.02, M.glass);
@@ -280,7 +299,7 @@
         front(g, x, KICK, D0, w / 2, h, c.baseM, { style: st, handle: hd, hingeLeft: false });
         front(g, x + w / 2, KICK, D0, w / 2, h, c.baseM, { style: st, handle: hd, hingeLeft: true });
       } else front(g, x, KICK, D0, w, h, c.baseM, { style: st, handle: hd, hingeLeft: i % 2 === 1 });
-      if (it.kind === 'sink') {
+      if (it.kind === 'sink' || it.kind === 'tub') {
         var sw = Math.min(0.7, w - 0.1);
         box(g, x + (w - sw) / 2, bTop + 0.001, 0.12, sw, 0.004, 0.4, M.steel, true);
         tap(g, x + w / 2, 0.08, bTop, hd);
@@ -288,7 +307,19 @@
     } else if (it.t === 'upper') {
       box(g, x, UP_BOT, 0, w, UP_TOP - UP_BOT, UP_D - 0.002, c.upM);
       front(g, x, UP_BOT, UP_D, w, UP_TOP - UP_BOT, c.upM, { style: st, handle: hd, upper: true, hingeLeft: it.hingeLeft });
-      box(g, x, UP_TOP, 0, w, CEIL - UP_TOP, UP_D, M.ceiling);
+      if (DM.BULK) box(g, x, UP_TOP, 0, w, CEIL - UP_TOP, UP_D, M.ceiling);
+    } else if (it.t === 'mirror') {
+      if (it.kind === 'cabinet') {
+        box(g, x, UP_BOT, 0, w, UP_TOP - UP_BOT, UP_D - 0.02, c.upM);
+        var nd = w > 0.65 ? 2 : 1;
+        for (var q = 0; q < nd; q++) box(g, x + q * w / nd + 0.003, UP_BOT + 0.003, UP_D - 0.02, w / nd - 0.006, UP_TOP - UP_BOT - 0.006, 0.012, M.mirror);
+      } else {
+        var rr = Math.min(0.32, w / 2), cy = UP_BOT + (UP_TOP - UP_BOT) / 2;
+        var frame = new T.Mesh(new T.CylinderGeometry(rr, rr, 0.02, 40), handleMat(hd === 'none' ? 'black' : hd));
+        frame.rotation.x = Math.PI / 2; frame.position.set(x + w / 2, cy, 0.01); g.add(frame);
+        var glass = new T.Mesh(new T.CylinderGeometry(rr - 0.015, rr - 0.015, 0.024, 40), M.mirror);
+        glass.rotation.x = Math.PI / 2; glass.position.set(x + w / 2, cy, 0.012); g.add(glass);
+      }
     } else if (it.t === 'shelf') {
       [1.62, 1.98].forEach(function (y, j) {
         box(g, x, y, 0, w, 0.035, 0.26, c.upM);
@@ -302,11 +333,22 @@
       box(g, x - 0.01, 1.74, 0, w + 0.02, 0.04, 0.46, M.steel);
       box(g, x, UP_TOP, 0, w, CEIL - UP_TOP, 0.42, M.ceiling);
     } else if (it.t === 'tall') {
-      if (it.kind === 'pantry') {
-        box(g, x, KICK, 0, w, TALL_TOP - KICK, 0.6, c.upM);
-        box(g, x, 0, 0, w, KICK, 0.54, M.kick);
-        front(g, x, KICK, 0.6, w / 2, TALL_TOP - KICK, c.upM, { style: st, handle: hd, tall: true, hingeLeft: false });
-        front(g, x + w / 2, KICK, 0.6, w / 2, TALL_TOP - KICK, c.upM, { style: st, handle: hd, tall: true, hingeLeft: true });
+      if (it.kind === 'pantry' || it.kind === 'broom' || it.kind === 'linen') {
+        var td = it.kind === 'linen' ? D0 : 0.6, tm = it.kind === 'linen' ? c.baseM : c.upM;
+        box(g, x, KICK, 0, w, TALL_TOP - KICK, td, tm);
+        if (!DM.FLOAT) box(g, x, 0, 0, w, KICK, td - 0.06, M.kick);
+        if (w > 0.65) {
+          front(g, x, KICK, td, w / 2, TALL_TOP - KICK, tm, { style: st, handle: hd, tall: true, hingeLeft: false });
+          front(g, x + w / 2, KICK, td, w / 2, TALL_TOP - KICK, tm, { style: st, handle: hd, tall: true, hingeLeft: true });
+        } else front(g, x, KICK, td, w, TALL_TOP - KICK, tm, { style: st, handle: hd, tall: true, hingeLeft: false });
+      } else if (it.kind === 'stack') {
+        // stacked washer and dryer: end panels, a cupboard above, machines for scale
+        box(g, x, 0, 0, 0.018, TALL_TOP, 0.62, c.upM);
+        box(g, x + w - 0.018, 0, 0, 0.018, TALL_TOP, 0.62, c.upM);
+        box(g, x + 0.018, 1.8, 0, w - 0.036, TALL_TOP - 1.8, 0.6, c.upM);
+        front(g, x + 0.018, 1.8, 0.6, w - 0.036, TALL_TOP - 1.8, c.upM, { style: st, handle: hd, upper: true, hingeLeft: true });
+        machine(g, x + 0.018, 0, w - 0.036, 'washer');
+        machine(g, x + 0.018, 0.88, w - 0.036, 'dryer');
       } else {
         // fridge space: side panels, bridging cupboard above, and a fridge for scale
         box(g, x, 0, 0, 0.018, TALL_TOP, 0.62, c.upM);
@@ -317,8 +359,22 @@
         box(g, x + w / 2 - 0.03, 1.1, 0.64, 0.014, 0.45, 0.02, M.black, true);
         box(g, x + w / 2 + 0.016, 1.1, 0.64, 0.014, 0.45, 0.02, M.black, true);
       }
-      box(g, x, TALL_TOP, 0, w, CEIL - TALL_TOP, 0.62, M.ceiling);
+      if (DM.BULK) box(g, x, TALL_TOP, 0, w, CEIL - TALL_TOP, 0.62, M.ceiling);
     }
+  }
+
+  /* above-counter basin with a wall tap, for vanities */
+  function basin(g, cx, bTop, hd) {
+    var bowl = new T.Mesh(new T.CylinderGeometry(0.2, 0.15, 0.13, 32), M.ceramic);
+    bowl.position.set(cx, bTop + 0.065, BD / 2 + 0.02);
+    bowl.castShadow = true;
+    g.add(bowl);
+    var inner = new T.Mesh(new T.CylinderGeometry(0.175, 0.13, 0.005, 32), M.inner);
+    inner.position.set(cx, bTop + 0.131, BD / 2 + 0.02);
+    g.add(inner);
+    var tapM = handleMat(hd === 'none' ? 'black' : hd);
+    cyl(g, 0.012, 0.18, tapM, 'z', cx, bTop + 0.3, 0.09);
+    cyl(g, 0.025, 0.03, tapM, 'z', cx, bTop + 0.3, 0.015);
   }
 
   function buildKitchen(s) {
@@ -344,7 +400,8 @@
         } else sm = s.splash === 'glass' ? M.glass : c.bM;
         box(g, r.splash[0], bTop, 0, sw, splashH, 0.012, sm);
       }
-      if (r.id === 'back' && r.bench) {
+      if (r.basins) r.basins.forEach(function (cx) { basin(g, cx, bTop, s.handle); });
+      if (r.id === 'back' && r.bench && !r.basins) {
         var px = r.bench[1] - 0.35;
         cyl(g, 0.07, 0.14, M.pot, 'y', px, bTop + 0.07, 0.3);
         var leaf = new T.Mesh(new T.SphereGeometry(0.14, 10, 8), M.leaf);
