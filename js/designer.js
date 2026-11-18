@@ -665,7 +665,7 @@
     var s = document.createElement('script');
     s.src = src; s.async = true;
     s.onload = cb;
-    s.onerror = function () { pane3d.classList.remove('is-loading'); pane3d.insertAdjacentHTML('beforeend', '<p class="d3-error">The 3D view couldn\'t load. Check your connection and try again.</p>'); loading3d = false; };
+    s.onerror = function () { pane3d.classList.remove('is-loading'); loading3d = false; setView('2d'); };
     document.head.appendChild(s);
   }
   function ensure3D() {
@@ -695,13 +695,16 @@
       loadScript('js/designer3d.js', function () { pane3d.classList.remove('is-loading'); });
     });
   }
-  function setView(v) {
-    view3d = v === '3d';
+  function setViewButtons(v) {
     root.querySelectorAll('[data-view]').forEach(function (b) {
       var on = b.dataset.view === v;
       b.classList.toggle('is-active', on);
       b.setAttribute('aria-pressed', String(on));
     });
+  }
+  function setView(v) {
+    view3d = v === '3d';
+    setViewButtons(v);
     pane2d.hidden = view3d;
     pane3d.hidden = !view3d;
     if (!view3d) return;
@@ -712,5 +715,18 @@
     b.addEventListener('click', function () { setView(b.dataset.view); });
   });
 
+  window.JCDesigner.setView = setView;
   render();
+  /* open on the 3D view; three.js downloads once the designer is close to the screen */
+  setViewButtons('3d');
+  pane2d.hidden = true;
+  pane3d.hidden = false;
+  view3d = true;
+  pane3d.classList.add('is-loading');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); if (view3d) startLoad(); }
+    }, { rootMargin: '600px 0px' });
+    io.observe(root);
+  } else startLoad();
 })();

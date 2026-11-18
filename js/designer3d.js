@@ -13,7 +13,8 @@
   try {
     renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: false });
   } catch (e) {
-    host.insertAdjacentHTML('beforeend', '<p class="d3-error">Sorry, 3D isn\'t supported on this device. The front view still works.</p>');
+    host.classList.remove('is-loading');
+    if (D.setView) D.setView('2d');
     return;
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -563,6 +564,7 @@
       if (a === 'in') zoom(0.85);
       if (a === 'out') zoom(1.18);
       if (a === 'reset') { lastMode = null; update(); }
+      if (a === 'full') toggleFull();
     });
   });
 
@@ -603,16 +605,42 @@
       renderer.render(scene, camera);
     });
   }
+  /* full screen: uses the browser's full screen where it can, otherwise fills the window */
+  var fsReq = host.requestFullscreen || host.webkitRequestFullscreen;
+  function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement; }
+  function setFull(on) {
+    host.classList.toggle('is-full', on);
+    document.body.classList.toggle('d3-locked', on);
+    var b = host.querySelector('[data-d3="full"]');
+    if (b) { b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen'); }
+    draw();
+  }
+  function toggleFull() {
+    var on = !host.classList.contains('is-full');
+    if (!on) {
+      if (fsEl()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      return setFull(false);
+    }
+    setFull(true);
+    if (fsReq) try { var pr = fsReq.call(host); if (pr && pr.catch) pr.catch(function () {}); } catch (e) {}
+  }
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (ev) {
+    document.addEventListener(ev, function () { if (!fsEl() && host.classList.contains('is-full')) setFull(false); });
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && host.classList.contains('is-full') && !fsEl()) setFull(false); });
+
   function resize() {
-    var w = host.clientWidth, h = Math.round(w * 0.65);
+    var full = host.classList.contains('is-full');
+    var w = host.clientWidth, h = full ? host.clientHeight : Math.round(w * 0.65);
     if (!w) return;
     var size = renderer.getSize(new T.Vector2());
     if (size.x !== w || size.y !== h) {
       renderer.setSize(w, h, false);
-      el.style.width = w + 'px';
+      el.style.width = '100%';
       el.style.height = h + 'px';
       camera.aspect = w / h;
-      camera.fov = w < 520 ? 46 : 38;
+      // portrait (phone full screen): keep the same side-to-side view so the room still fits
+      camera.fov = h > w ? Math.min(80, 2 * Math.atan(Math.tan(31 * Math.PI / 180) * h / w) * 180 / Math.PI) : w < 520 ? 46 : 38;
       camera.updateProjectionMatrix();
     }
   }

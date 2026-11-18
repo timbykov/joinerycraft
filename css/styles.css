@@ -545,3 +545,14 @@ body { position: relative; }
   .size-num input { width: 4.2rem; }
   .size-row input[type=range] { grid-column: 1 / -1; grid-row: 2; }
 }
+
+/* 3D full screen (real full screen where the browser allows it, otherwise a fixed overlay, e.g. iPhone) */
+.d3-full { display: inline-flex; align-items: center; justify-content: center; }
+.d3-full .d3-full-close { display: none; }
+.designer-3d.is-full .d3-full .d3-full-open { display: none; }
+.designer-3d.is-full .d3-full .d3-full-close { display: inline; }
+.designer-3d.is-full { position: fixed; inset: 0; z-index: 1000; aspect-ratio: auto; width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; margin: 0; }
+.designer-3d.is-full .d3-controls { top: max(.8rem, env(safe-area-inset-top)); right: max(.8rem, env(safe-area-inset-right)); }
+.designer-3d.is-full .d3-btn { min-width: 42px; height: 42px; font-size: 1.15rem; }
+.designer-3d:fullscreen { width: 100%; height: 100%; }
+body.d3-locked { overflow: hidden; }
