@@ -771,6 +771,10 @@
   });
 
   window.JCDesigner.setView = setView;
+  /* deep link: ?design=wardrobe opens the wardrobe tab */
+  var want = new URLSearchParams(location.search).get('design');
+  var wantTab = want && root.querySelector('[data-mode-tab="' + want.replace(/[^a-z]/g, '') + '"]');
+  if (wantTab && want !== mode) wantTab.click();
   render();
   /* open on the 3D view; three.js downloads once the designer is close to the screen */
   setViewButtons('3d');

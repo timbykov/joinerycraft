@@ -604,3 +604,17 @@ body.d3-locked { overflow: hidden; }
 .home-supplier span:last-child { font-size: .85rem; color: var(--muted); padding: 0 .2rem; }
 .home-supplier-cta { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin: 1.75rem 0 0; }
 @media (max-width: 860px) { .home-supplier-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; } }
+
+/* 3D designer as the headline feature */
+.hero-badge { display: inline-flex; align-items: center; gap: .6rem; margin-bottom: 1.1rem; padding: .35rem .9rem .35rem .4rem; border-radius: 999px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); color: #fff; font-size: .9rem; font-weight: 600; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.hero-badge span { background: var(--oak); color: #fff; border-radius: 999px; padding: .15rem .6rem; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+.nav-3d { position: relative; }
+.main-nav .nav-3d::after { content: "Free"; position: absolute; top: -.85rem; right: -1.1rem; background: var(--oak); color: #fff; font-size: .6rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .1rem .4rem; border-radius: 999px; line-height: 1.4; }
+.designer-features { list-style: none; padding: 0; margin: -1.5rem 0 2.5rem; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+.designer-features li { background: var(--tint); border-radius: var(--radius); padding: 1.1rem 1.2rem; border-left: 3px solid var(--oak); }
+.designer-features strong { display: block; font-family: var(--serif); font-weight: 400; font-size: 1.15rem; margin-bottom: .3rem; }
+.designer-features span { font-size: .9rem; color: var(--muted); line-height: 1.5; }
+.final-cta p a { color: inherit; text-decoration: underline; }
+@media (max-width: 900px) { .designer-features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .designer-features { gap: .5rem; margin: -1.75rem 0 1.75rem; } .designer-features li { padding: .7rem .8rem; } .designer-features strong { font-size: 1rem; margin-bottom: .15rem; } .designer-features span { font-size: .78rem; line-height: 1.4; display: block; } }
+.main-nav a.nav-3d { color: var(--ink); font-weight: 600; }
