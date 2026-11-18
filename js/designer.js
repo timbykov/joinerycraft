@@ -775,6 +775,16 @@
   var want = new URLSearchParams(location.search).get('design');
   var wantTab = want && root.querySelector('[data-mode-tab="' + want.replace(/[^a-z]/g, '') + '"]');
   if (wantTab && want !== mode) wantTab.click();
+  /* ?look=hamptons etc. preloads a kitchen style (used by the style pages) */
+  var LOOKS = {
+    hamptons: { door: 'shaker', base: 'p-natural-cotton', upper: 'p-natural-cotton', bench: 'cs-calacatta-nuvo', splash: 'subway', handle: 'brass', shape: 'l', island: 'on' },
+    shaker: { door: 'shaker', base: 'p-oasis', upper: 'p-classic-white', bench: 'cs-empira-white', splash: 'subway', handle: 'black' },
+    modern: { door: 'fingerpull', base: 'p-polar-white', upper: 'p-polar-white', bench: 'qq-concrete-matte', splash: 'stone', handle: 'none', shape: 'l', island: 'on' },
+    twotone: { door: 'flat', base: 'p-mercurio-grey', upper: 'p-classic-white', bench: 'cs-snow', splash: 'stone', handle: 'steel' },
+    timber: { door: 'flat', base: 'p-prime-oak', upper: 'p-classic-white', bench: 'cs-pure-white', splash: 'stone', handle: 'black', shape: 'galley', island: 'off' }
+  };
+  var look = LOOKS[(new URLSearchParams(location.search).get('look') || '').replace(/[^a-z]/g, '')];
+  if (look && mode === 'kitchen') Object.keys(look).forEach(function (k) { ks[k] = look[k]; });
   render();
   /* open on the 3D view; three.js downloads once the designer is close to the screen */
   setViewButtons('3d');
