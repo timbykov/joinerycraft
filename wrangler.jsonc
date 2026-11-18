@@ -15,6 +15,8 @@
     // Inbox(es) that receive quote requests, comma separated. Set it in the Cloudflare dashboard
     // (Settings > Variables) so it isn't in the public repo. Sending also needs RESEND_API_KEY
     // (a secret) or a send_email binding called EMAIL.
-    "QUOTE_FROM": "quotes@joinerycraft.com.au"
+    // Resend's test sender works without DNS records but only delivers to the Resend account's own
+    // email. Once joinerycraft.com.au is verified in Resend, change this to quotes@joinerycraft.com.au.
+    "QUOTE_FROM": "onboarding@resend.dev"
   }
 }
