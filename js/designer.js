@@ -53,9 +53,11 @@
   };
   var lists = { cabinet: CABINET, bench: BENCH, handle: HANDLE };
 
-  var ks = { shape: 'straight', wall: 4.2, side: 2.4, bases: 0, island: 'on', islandLen: 2.4, pantry: 'off', fridge: 'on', dishwasher: 'on', overheads: 'full',
-    door: 'shaker', base: 'p-oasis', upper: 'p-classic-white', bench: 'cs-empira-white', splash: 'subway', handle: 'brass' };
-  var ws = { wtype: 'walkin', wdoors: 'hinged', door: 'shaker', finish: 'l-tasmanian-oak', internals: 'balanced', light: 'on', handle: 'black',
+  /* starting design follows what is most asked for in 2026: L-shape with an island, timber-look
+     base cupboards with white overheads, flat doors, white stone benchtop and splashback */
+  var ks = { shape: 'l', wall: 4.2, side: 2.4, bases: 0, island: 'on', islandLen: 2.4, pantry: 'off', fridge: 'on', dishwasher: 'on', overheads: 'full',
+    door: 'flat', base: 'p-prime-oak', upper: 'p-classic-white', bench: 'cs-empira-white', splash: 'stone', handle: 'brass' };
+  var ws = { wtype: 'builtin', wdoors: 'hinged', door: 'flat', finish: 'p-prime-oak', internals: 'balanced', light: 'on', handle: 'black',
     width: 2.4, height: 2.4, doorCount: 0, panelCount: 0, bsec: [], showInside: 'off', wshape: 'u', wwidth: 3.2, wside: 1.6, wcount: {}, wsec: {} };
   var mode = 'kitchen';
   var state = ks;
@@ -827,12 +829,13 @@
   if (saveBar) {
     var note = saveBar.querySelector('.save-note');
     if (restoredFrom) note.classList.add('show');
-    if (restoredFrom === 'device') note.innerHTML = 'Welcome back. We reopened your last design. <button type="button" class="btn-link" data-save="fresh">Start fresh</button>';
+    if (restoredFrom === 'device') note.textContent = 'Welcome back. We reopened your last design.';
     else if (restoredFrom === 'link') note.textContent = 'Opened a saved design. Any changes save on this device.';
     saveBar.addEventListener('click', function (e) {
       var b = e.target.closest('[data-save]');
       if (!b) return;
-      if (b.dataset.save === 'fresh') {
+      if (b.dataset.save === 'restart' && !window.confirm('Start a new design? This clears the design saved on this device. Any links you saved will still open it.')) return;
+      if (b.dataset.save === 'fresh' || b.dataset.save === 'restart') {
         try { localStorage.removeItem(SAVE_KEY); } catch (er) {}
         location.href = location.pathname + '#design';
         location.reload();

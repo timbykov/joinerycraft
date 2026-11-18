@@ -704,6 +704,7 @@ body.d3-locked { overflow: hidden; }
   .designer-stage .designer-cta { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .6rem 1rem; margin-top: .75rem; }
   .designer-stage .designer-actions { padding-top: 0; gap: .75rem; }
   .designer-stage .design-save { margin: 0; padding: 0; border: 0; background: none; display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; justify-content: flex-end; }
+  .designer-stage .design-save-btns { flex: none; flex-wrap: nowrap; align-items: center; gap: .25rem; }
   .designer-stage .save-note { margin: 0; font-size: .8rem; flex: 1 1 100%; text-align: right; }
   .designer-stage .save-note:not(.show) { display: none; }
   .designer-stage .save-link { flex-basis: 100%; }

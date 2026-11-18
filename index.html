@@ -264,7 +264,7 @@
               <div class="d3-controls">
                 <button type="button" class="d3-btn" data-d3="in" aria-label="Zoom in">+</button>
                 <button type="button" class="d3-btn" data-d3="out" aria-label="Zoom out">&minus;</button>
-                <button type="button" class="d3-btn d3-reset" data-d3="reset">Reset</button>
+                <button type="button" class="d3-btn d3-reset" data-d3="reset" title="Put the camera back where it started">Reset view</button>
                 <button type="button" class="d3-btn d3-full" data-d3="full" aria-label="Full screen" aria-pressed="false"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path class="d3-full-open" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path class="d3-full-close" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
               </div>
               <p class="d3-hint">Drag to look around · scroll or pinch to zoom</p>
@@ -440,6 +440,7 @@
                 <div class="design-save-btns">
                   <button type="button" class="btn btn-outline btn-sm" data-save="copy">Save &amp; copy link</button>
                   <button type="button" class="btn btn-outline btn-sm" data-save="share" hidden>Share</button>
+                  <button type="button" class="btn btn-text btn-sm" data-save="restart">Start again</button>
                 </div>
                 <p class="save-note">Your design saves automatically on this device. Save a link to open it anywhere.</p>
                 <input class="save-link" type="text" readonly hidden aria-label="Link to your design">
