@@ -459,6 +459,8 @@
     var text = 'My design: ' + summary();
     var field = document.getElementById('designField');
     if (field) field.value = text;
+    var list = document.getElementById('cabinetListField');
+    if (list && window.JCExport) list.value = window.JCExport.csv();
     var form = document.getElementById('quoteForm');
     if (!form) return;
     var details = form.querySelector('#details');
@@ -486,6 +488,33 @@
     s.onerror = function () { pane3d.classList.remove('is-loading'); pane3d.insertAdjacentHTML('beforeend', '<p class="d3-error">The 3D view couldn\'t load. Check your connection and try again.</p>'); loading3d = false; };
     document.head.appendChild(s);
   }
+  function ensure3D() {
+    if (window.JC3D) return Promise.resolve();
+    return new Promise(function (res, rej) {
+      var tries = 0;
+      if (!view3d) { pane3d.hidden = false; pane3d.style.position = 'absolute'; pane3d.style.left = '-9999px'; pane3d.style.width = '800px'; view3d = true; var hiddenLoad = true; }
+      startLoad();
+      (function wait() {
+        if (window.JC3D) {
+          if (hiddenLoad) { pane3d.hidden = true; pane3d.style.cssText = ''; view3d = false; }
+          window.JC3D.update();
+          return res();
+        }
+        if (++tries > 150) return rej();
+        setTimeout(wait, 100);
+      })();
+    });
+  }
+  window.JCDesigner.ensure3D = ensure3D;
+  function startLoad() {
+    if (window.JC3D || loading3d) return;
+    loading3d = true;
+    pane3d.classList.add('is-loading');
+    var three = window.THREE ? function (cb) { cb(); } : function (cb) { loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js', cb); };
+    three(function () {
+      loadScript('js/designer3d.js', function () { pane3d.classList.remove('is-loading'); });
+    });
+  }
   function setView(v) {
     view3d = v === '3d';
     root.querySelectorAll('[data-view]').forEach(function (b) {
@@ -497,13 +526,7 @@
     pane3d.hidden = !view3d;
     if (!view3d) return;
     if (window.JC3D) return window.JC3D.update();
-    if (loading3d) return;
-    loading3d = true;
-    pane3d.classList.add('is-loading');
-    var three = window.THREE ? function (cb) { cb(); } : function (cb) { loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js', cb); };
-    three(function () {
-      loadScript('js/designer3d.js', function () { pane3d.classList.remove('is-loading'); });
-    });
+    startLoad();
   }
   root.querySelectorAll('[data-view]').forEach(function (b) {
     b.addEventListener('click', function () { setView(b.dataset.view); });

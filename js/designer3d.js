@@ -603,6 +603,6 @@
   if ('ResizeObserver' in window) new ResizeObserver(draw).observe(host);
   else window.addEventListener('resize', draw);
 
-  window.JC3D = { update: update, draw: draw };
+  window.JC3D = { update: update, draw: draw, model: function () { return world; } };
   update();
 })();

@@ -567,6 +567,11 @@
               <a href="#quote" class="btn btn-accent" id="designSend">Get a quote for this design</a>
               <button type="button" class="btn btn-text" id="designRandom">Surprise me</button>
             </div>
+            <div class="designer-export">
+              <span>Download this design:</span>
+              <button type="button" class="btn-link" id="exportCsv">Cabinet list (CSV)</button>
+              <button type="button" class="btn-link" id="exportGlb">3D model (.glb)</button>
+            </div>
           </div>
         </div>
       </div>
@@ -712,6 +717,7 @@
         <form class="quote-form" id="quoteForm" name="quote" method="POST" action="/thank-you.html" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" novalidate>
           <input type="hidden" name="form-name" value="quote">
           <input type="hidden" name="design" id="designField" value="">
+          <input type="hidden" name="cabinet_list" id="cabinetListField" value="">
           <p class="hp"><label>Leave this empty <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
 
           <div class="form-progress" aria-hidden="true">
@@ -937,6 +943,7 @@
 
   <script src="js/boards.js" defer></script>
   <script src="js/designer.js" defer></script>
+  <script src="js/export.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
 </html>
