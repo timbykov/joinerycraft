@@ -751,3 +751,18 @@ body.d3-locked { overflow: hidden; }
 .design-attached strong { display: block; font-size: .95rem; }
 .design-attached p { margin: .2rem 0 0; font-size: .86rem; color: var(--muted); }
 .design-attached-links a, .design-attached-links .btn-link { color: var(--oak-dark); font-weight: 600; font-size: .86rem; }
+
+/* designer start: pick what to design before the 3D loads */
+.designer-pick { margin-bottom: 1rem; }
+.pick-lead { font-family: var(--serif); font-size: 1.5rem; line-height: 1.3; margin: 0 0 1.25rem; }
+.pick-lead span { display: block; font-family: var(--sans); font-size: 1rem; color: var(--muted); margin-top: .25rem; }
+.pick-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+.pick-card { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 0 0 1rem; border: 1px solid var(--line, #e2dbd0); border-radius: var(--radius); background: #fff; cursor: pointer; overflow: hidden; font: inherit; color: inherit; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+.pick-card img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; background: var(--tint); margin-bottom: .85rem; }
+.pick-card:hover, .pick-card:focus-visible { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.08); border-color: var(--oak); }
+.pick-card:focus-visible { outline: 2px solid var(--oak); outline-offset: 2px; }
+.pick-name { font-family: var(--serif); font-size: 1.25rem; padding: 0 1rem; }
+.pick-name span { color: var(--oak); }
+.pick-sub { font-size: .9rem; color: var(--muted, #6b645b); padding: .2rem 1rem 0; line-height: 1.4; }
+@media (max-width: 900px) { .pick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; } .pick-card { padding-bottom: .8rem; } .pick-card img { margin-bottom: .6rem; } .pick-name { font-size: 1.1rem; padding: 0 .75rem; } .pick-sub { padding: .15rem .75rem 0; font-size: .82rem; } .pick-lead { font-size: 1.25rem; } }
+.designer[hidden], .designer-pick[hidden] { display: none; }

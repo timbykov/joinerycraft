@@ -1115,16 +1115,37 @@
   var look = LOOKS[(new URLSearchParams(location.search).get('look') || '').replace(/[^a-z]/g, '')];
   if (look && mode === 'kitchen') Object.keys(look).forEach(function (k) { ks[k] = look[k]; });
   render();
-  /* open on the 3D view; three.js downloads once the designer is close to the screen */
+  /* open on the 3D view */
   setViewButtons('3d');
   pane2d.hidden = true;
   pane3d.hidden = false;
   view3d = true;
   pane3d.classList.add('is-loading');
-  if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function (es) {
-      if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); if (view3d) startLoad(); }
-    }, { rootMargin: '600px 0px' });
-    io.observe(root);
-  } else startLoad();
+  function watchAndLoad() {
+    // three.js downloads once the designer is close to the screen
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (es) {
+        if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); if (view3d) startLoad(); }
+      }, { rootMargin: '600px 0px' });
+      io.observe(root);
+    } else startLoad();
+  }
+  /* first visit: show four pictures to choose from, and only load the 3D designer once one is picked.
+     Returning visitors, shared links and ?design= / ?look= links go straight in. */
+  var pick = document.getElementById('designPick');
+  if (pick && !restoredFrom && !want && !look) {
+    pick.hidden = false;
+    root.hidden = true;
+    pick.addEventListener('click', function (e) {
+      var c = e.target.closest('[data-pick]');
+      if (!c) return;
+      var tab = root.querySelector('[data-mode-tab="' + c.dataset.pick + '"]');
+      if (tab && c.dataset.pick !== mode) tab.click();
+      pick.hidden = true;
+      root.hidden = false;
+      startLoad();
+      var top = root.getBoundingClientRect().top + window.pageYOffset - ((document.querySelector('.site-header') || {}).offsetHeight || 0) - 12;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    });
+  } else watchAndLoad();
 })();
