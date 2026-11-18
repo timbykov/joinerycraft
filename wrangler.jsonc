@@ -1,0 +1,9 @@
+{
+  // Cloudflare Workers static site. Everything in the repo root is served as-is.
+  "name": "joinerycraft",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": ".",
+    "not_found_handling": "404-page"
+  }
+}
