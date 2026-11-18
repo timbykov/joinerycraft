@@ -1,7 +1,7 @@
 /* Joinerycraft design creator: export.
    Turns the current design into a cabinet list (CSV, sizes in mm) that can be
    mapped into Cabinet Vision / Mozaik / 3D Kitchens, and a 3D model (.glb).
-   The sizes match the 3D view. */
+   Sizes come from the same layout model as the front and 3D views (js/layout.js). */
 (function () {
   'use strict';
   var D = window.JCDesigner;
@@ -13,73 +13,90 @@
   var DOOR = { flat: 'Flat panel', shaker: 'Shaker', fingerpull: 'Fingerpull' };
   var r = Math.round;
 
+  var DIM = window.JCLayout.dims, SEC = window.JCLayout.SECTION;
+  var BASE_H = (DIM.BASE_TOP - DIM.KICK) * 1000, UP_H = (DIM.UP_TOP - DIM.UP_BOT) * 1000, TALL_H = (DIM.TALL_TOP - DIM.KICK) * 1000;
+  var BASE_DESC = {
+    door: function (w) { return w > 650 ? '2 door base' : '1 door base'; },
+    drawers: function () { return '3 drawer base'; },
+    oven: function () { return 'Oven housing with drawer above'; },
+    sink: function (w) { return (w > 650 ? '2 door' : '1 door') + ' sink base'; },
+    dw: function () { return 'Dishwasher space with integrated panel'; },
+    corner: function () { return 'Blind corner base'; }
+  };
+
   function kitchenRows(s) {
-    var rows = [], base = board(s.base), up = board(s.upper), bench = find(D.BENCH, s.bench);
+    var rows = [], base = board(s.base), up = board(s.upper), bench = find(D.BENCH, s.bench), m = D.model();
     var door = DOOR[s.door], hd = s.door === 'fingerpull' ? 'Fingerpull' : handleName(s.handle);
     function add(loc, type, desc, w, h, d, qty, mat, notes) {
       rows.push({ location: loc, type: type, description: desc, width: r(w), height: r(h), depth: r(d), qty: qty || 1,
         door: mat ? door : '', brand: mat ? mat.brand : '', colour: mat ? mat.name : '', handles: mat ? hd : '', notes: notes || '' });
     }
-    var runW = s.layout === 'pantry' ? 3600 : 4500, n = Math.max(3, Math.round(runW / 600)), uw = runW / n;
-    var hoodW = 900, hoodLeft = (runW - hoodW) / 2;
-    var ovenIdx = Math.floor((hoodLeft + hoodW / 2) / uw);
-    var sinkIdx = Math.floor(1000 / uw);
-    for (var i = 0; i < n; i++) {
-      var note = i === sinkIdx ? 'Sink above' : '';
-      if (i === ovenIdx) add('Back wall', 'Base', 'Oven housing with drawer above', uw, 720, 560, 1, base, 'Under cooktop');
-      else if (i % 3 === 0) add('Back wall', 'Base', '3 drawer base', uw, 720, 560, 1, base, note);
-      else add('Back wall', 'Base', '1 door base', uw, 720, 560, 1, base, note);
-    }
-    function upperRun(len, side) {
-      if (len < 200) return;
-      var m = Math.max(1, Math.round(len / 550));
-      for (var j = 0; j < m; j++) add('Back wall', 'Wall', '1 door wall cabinet', len / m, 700, 340, 1, up, side);
-    }
-    upperRun(hoodLeft, 'Left of rangehood');
-    add('Back wall', 'Wall', 'Rangehood canopy', hoodW, 420, 420, 1, up, 'Rangehood insert by others');
-    upperRun(runW - hoodLeft - hoodW, 'Right of rangehood');
-    if (s.layout === 'pantry') {
-      add('Back wall', 'Tall', '2 door pantry', 880, 2050, 600, 1, up, 'Right end of run');
-    }
-    if (s.layout !== 'wall') {
-      for (var q = 0; q < 4; q++) add('Island', 'Base', q === 0 || q === 3 ? '3 drawer base' : '1 door base', 600, 720, 620, 1, base, 'Faces back wall');
-    }
-    add('All', 'Kickboard', 'Kickboards', 0, 150, 0, 1, null, 'Dark or matching, 150 mm high');
-    var benchName = bench.val === 'timber' ? 'Timber' : bench.brand + ' ' + bench.name;
-    rows.push({ location: 'Back wall', type: 'Benchtop', description: '40 mm benchtop', width: runW + 40, height: 40, depth: 620, qty: 1, door: '', brand: bench.brand, colour: bench.name, handles: '', notes: benchName });
-    if (s.layout !== 'wall') {
-      var wf = bench.val !== 'timber';
-      rows.push({ location: 'Island', type: 'Benchtop', description: '40 mm island top with seating overhang' + (wf ? ' and 2 waterfall ends' : ''), width: 2480, height: 40, depth: 960, qty: 1, door: '', brand: bench.brand, colour: bench.name, handles: '', notes: wf ? 'Waterfall ends 960 x 910 x 40' : '' });
-    }
+    var kick = 0, benchName = bench.val === 'timber' ? 'Timber' : bench.brand + ' ' + bench.name;
     var sp = { subway: 'Subway tile (by others)', stone: 'Stone to match benchtop', glass: 'Smoked glass' }[s.splash];
-    rows.push({ location: 'Back wall', type: 'Splashback', description: sp, width: runW, height: 590, depth: 0, qty: 1, door: '', brand: s.splash === 'stone' ? bench.brand : '', colour: s.splash === 'stone' ? bench.name : '', handles: '', notes: '' });
+    var splashH = s.overheads === 'none' ? 300 : (DIM.UP_BOT - DIM.BASE_TOP - DIM.BENCH_T) * 1000;
+    m.runs.forEach(function (run) {
+      var loc = run.label;
+      run.items.forEach(function (it) {
+        var w = it.w * 1000;
+        if (it.t === 'base') {
+          kick += w;
+          add(loc, 'Base', BASE_DESC[it.kind](w), w, BASE_H, 560, 1, base,
+            { oven: 'Under cooktop', sink: 'Sink and tap above', dw: '600 mm dishwasher by others', corner: 'Blind corner, ' + (it.side === 'L' ? 'left' : 'right') + ' end' }[it.kind] || '');
+        } else if (it.t === 'upper') add(loc, 'Wall', '1 door wall cabinet', w, UP_H, 340, 1, up, '');
+        else if (it.t === 'shelf') add(loc, 'Wall', 'Open shelves x 2', w, 35, 260, 2, up, 'Floating shelves at 1620 and 1980 mm');
+        else if (it.t === 'hood') add(loc, 'Wall', 'Rangehood canopy', w, 420, 420, 1, up, 'Rangehood insert by others');
+        else if (it.t === 'tall' && it.kind === 'pantry') { kick += w; add(loc, 'Tall', '2 door pantry', w, TALL_H, 600, 1, up, ''); }
+        else if (it.t === 'tall') {
+          add(loc, 'Wall', 'Bridging cupboard over fridge', w - 36, 300, 600, 1, up, '');
+          add(loc, 'Panel', 'Fridge end panels', 18, DIM.TALL_TOP * 1000, 620, 2, up, 'Fridge space ' + r(w - 36) + ' mm wide');
+        }
+      });
+      if (run.bench) {
+        var bl = (run.bench[1] - run.bench[0]) * 1000;
+        rows.push({ location: loc, type: 'Benchtop', description: '40 mm benchtop', width: r(bl), height: 40, depth: 620, qty: 1, door: '', brand: bench.brand, colour: bench.name, handles: '', notes: benchName });
+      }
+      if (run.splash) rows.push({ location: loc, type: 'Splashback', description: sp, width: r((run.splash[1] - run.splash[0]) * 1000), height: r(splashH), depth: 0, qty: 1, door: '', brand: s.splash === 'stone' ? bench.brand : '', colour: s.splash === 'stone' ? bench.name : '', handles: '', notes: '' });
+    });
+    if (m.island) {
+      var I = m.island;
+      I.items.forEach(function (it) {
+        kick += it.w * 1000;
+        add('Island', 'Base', it.kind === 'drawers' ? '3 drawer base' : (it.w > 0.65 ? '2 door base' : '1 door base'), it.w * 1000, BASE_H, 600, 1, base, 'Faces back wall');
+      });
+      var wf = I.waterfall, iw = I.len * 1000 + (wf ? 80 : 40), idp = (I.depth + I.overhang) * 1000;
+      rows.push({ location: 'Island', type: 'Benchtop', description: '40 mm island top with ' + r(I.overhang * 1000) + ' mm seating overhang' + (wf ? ' and 2 waterfall ends' : ''), width: r(iw), height: 40, depth: r(idp), qty: 1, door: '', brand: bench.brand, colour: bench.name, handles: '', notes: (wf ? 'Waterfall ends ' + r(idp) + ' x ' + r(DIM.BASE_TOP * 1000) + ' x 40. ' : '') + 'Seats ' + I.seats });
+    }
+    add('All', 'Kickboard', 'Kickboards', kick, 150, 0, 1, null, 'Total length. Dark or matching, 150 mm high');
     return rows;
   }
 
   function wardrobeRows(s) {
-    var rows = [], fin = board(s.finish), hd = handleName(s.handle);
+    var rows = [], fin = board(s.finish), hd = handleName(s.handle), m = D.model();
     function add(loc, type, desc, w, h, d, qty, notes, door, handles) {
       rows.push({ location: loc, type: type, description: desc, width: r(w), height: r(h), depth: r(d), qty: qty || 1,
         door: door || '', brand: fin.brand, colour: fin.name, handles: handles || '', notes: notes || '' });
     }
-    if (s.wtype === 'builtin') {
+    function drawerNote(k) { return k === 'drawers' ? '4 drawers, ' + (s.handle === 'none' ? 'push to open' : hd + ' handles') : ''; }
+    if (m.kind === 'builtin') {
+      var run = m.runs[0], H = m.height * 1000;
+      var bays = run.items.filter(function (it) { return it.t === 'bay'; });
       if (s.wdoors === 'hinged') {
-        for (var i = 0; i < 3; i++) add('Wall', 'Tall', '2 door robe with hanging and shelf', 1000, 2300, 600, 1, 'On 100 mm kick', DOOR[s.door], s.door === 'fingerpull' ? 'Fingerpull' : hd);
+        var doors = run.items.filter(function (it) { return it.t === 'door'; });
+        bays.forEach(function (b, i) {
+          var nd = doors.filter(function (d) { return d.x >= b.x - 0.001 && d.x < b.x + b.w - 0.001; }).length;
+          add('Wall', 'Tall', nd + ' door robe: ' + SEC[b.kind].toLowerCase(), b.w * 1000, H, 600, 1, 'Section ' + (i + 1) + ', on 80 mm kick. ' + drawerNote(b.kind), DOOR[s.door], s.door === 'fingerpull' ? 'Fingerpull' : hd);
+        });
       } else {
-        add('Wall', 'Robe carcass', 'Built-in robe interior (hanging, shelves, drawers)', 3000, 2400, 600, 1, 'Recess fit to ceiling bulkhead');
-        add('Wall', 'Sliding door', s.wdoors === 'mirror' ? 'Sliding mirror door' : 'Sliding door, board panel', 1040, 2340, 0, 3, (s.handle === 'none' ? 'Aluminium' : hd) + ' frames, top and bottom tracks', s.wdoors === 'mirror' ? 'Mirror' : 'Board panel', '');
+        bays.forEach(function (b, i) { add('Wall', 'Robe carcass', 'Robe section: ' + SEC[b.kind].toLowerCase(), b.w * 1000, H, 600, 1, 'Section ' + (i + 1) + '. ' + drawerNote(b.kind)); });
+        var sl = run.items.filter(function (it) { return it.t === 'slide'; });
+        add('Wall', 'Sliding door', s.wdoors === 'mirror' ? 'Sliding mirror door' : 'Sliding door, board panel', sl[0].w * 1000, H - 60, 0, sl.length, (s.handle === 'none' ? 'Aluminium' : hd) + ' frames, top and bottom tracks ' + r(m.sizes.width * 1000) + ' mm', s.wdoors === 'mirror' ? 'Mirror' : 'Board panel', '');
       }
       return rows;
     }
-    var sets = {
-      balanced: [['Double hanging', 'Shelves', 'Drawers + shelves', 'Long hanging'], ['Long hanging', 'Shoe shelves'], ['Double hanging', 'Drawers + shelves']],
-      hanging: [['Double hanging', 'Long hanging', 'Shelves', 'Double hanging'], ['Long hanging', 'Double hanging'], ['Double hanging', 'Long hanging']],
-      drawers: [['Shoe shelves', 'Drawers + shelves', 'Long hanging', 'Drawers + shelves'], ['Shoe shelves', 'Drawers + shelves'], ['Double hanging', 'Shoe shelves']]
-    }[s.internals];
-    [['Back wall', 3200], ['Left wall', 1600], ['Right wall', 1600]].forEach(function (run, k) {
-      var bays = sets[k], bw = run[1] / bays.length;
-      bays.forEach(function (b) {
-        add(run[0], 'Open bay', b, bw, 2400, 600, 1, b.indexOf('Drawers') === 0 ? '4 drawers, ' + (s.handle === 'none' ? 'push to open' : hd + ' handles') : '', b.indexOf('Drawers') === 0 ? 'Flat panel' : '', b.indexOf('Drawers') === 0 ? hd : '');
+    m.runs.forEach(function (run) {
+      run.items.forEach(function (b, i) {
+        var dr = b.kind === 'drawers';
+        add(run.label, 'Open bay', SEC[b.kind], b.w * 1000, m.height * 1000, 600, 1, 'Section ' + (i + 1) + (dr ? '. ' + drawerNote(b.kind) : ''), dr ? 'Flat panel' : '', dr ? hd : '');
       });
     });
     if (s.light === 'on') rows.push({ location: 'All', type: 'Lighting', description: 'LED strip lighting under top panels', width: 0, height: 0, depth: 0, qty: 1, door: '', brand: '', colour: '', handles: '', notes: 'Electrician by others' });

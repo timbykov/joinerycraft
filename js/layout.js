@@ -1,0 +1,219 @@
+/* Joinerycraft design creator: layout model.
+   Turns the customer's choices (sizes, shape, cabinet counts, sections) into a list of
+   runs and cabinets in metres. The front view, the 3D view and the cabinet list export
+   all draw from this one model, so they always agree. */
+(function () {
+  'use strict';
+
+  var KICK = 0.15, BASE_TOP = 0.87, BENCH_T = 0.04, BASE_D = 0.58, UP_BOT = 1.5, UP_TOP = 2.2, UP_D = 0.34, TALL_TOP = 2.2;
+  var SECTION = { hang: 'Long hanging', hang2: 'Double hanging', shelf: 'Shelves', drawers: 'Drawers + shelves', shoes: 'Shoe shelves' };
+  var MIX = {
+    balanced: ['hang2', 'shelf', 'drawers', 'hang', 'shoes'],
+    hanging: ['hang2', 'hang', 'shelf', 'hang2', 'hang'],
+    drawers: ['drawers', 'shoes', 'hang2', 'drawers', 'shelf']
+  };
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function r1(v) { return Math.round(v * 1000) / 1000; }
+
+  /* keep the sections someone already picked, add or drop from the end */
+  function fit(arr, n, pattern, offset) {
+    arr = (arr || []).slice(0, n);
+    for (var i = arr.length; i < n; i++) arr.push(pattern[(i + (offset || 0)) % pattern.length]);
+    return arr;
+  }
+
+  function countFor(len, wanted, minW, maxW, ideal) {
+    var lo = Math.max(1, Math.ceil(len / maxW - 1e-6)), hi = Math.max(lo, Math.floor(len / minW + 1e-6));
+    var n = wanted ? clamp(wanted, lo, hi) : clamp(Math.round(len / ideal), lo, hi);
+    return { n: n, min: lo, max: hi };
+  }
+
+  /* ---------------- kitchen ---------------- */
+  /* opts: cook index, sink, dishwasher, cornerL, cornerR (blind corner cabinets at the ends) */
+  function baseUnits(len, n, opts) {
+    opts = opts || {};
+    var w = len / n, items = [];
+    for (var i = 0; i < n; i++) items.push({ t: 'base', x: r1(i * w), w: r1(w), kind: i % 3 === 0 ? 'drawers' : 'door' });
+    var lo = opts.cornerL && n > 1 ? 1 : 0, hi = opts.cornerR && n > 1 ? n - 2 : n - 1;
+    if (opts.cook != null) {
+      var c = clamp(opts.cook, lo, Math.max(lo, hi));
+      items[c].kind = 'oven';
+      if (opts.sink && n >= 3) {
+        var s = c - lo >= 2 ? c - 2 : (hi - c >= 2 ? c + 2 : (c - lo >= 1 ? lo : (hi > c ? hi : -1)));
+        if (s === c) s = -1;
+        if (s >= 0) {
+          items[s].kind = 'sink';
+          var dw = s + 1 <= hi && s + 1 !== c ? s + 1 : (s - 1 >= lo && s - 1 !== c ? s - 1 : -1);
+          if (opts.dishwasher && dw >= 0) items[dw].kind = 'dw';
+        }
+      }
+    }
+    if (opts.cornerL && items[0].kind !== 'oven') { items[0].kind = 'corner'; items[0].side = 'L'; }
+    if (opts.cornerR && n > 1 && items[n - 1].kind !== 'oven') { items[n - 1].kind = 'corner'; items[n - 1].side = 'R'; }
+    // appliances, the sink and blind corners get standard widths, the rest share what is left
+    // try the full set of standard widths first, then drop the sink and corner, then the dishwasher
+    [{ oven: 0.6, dw: 0.6, sink: 0.8, corner: 0.95 }, { oven: 0.6, dw: 0.6 }, { oven: 0.6 }].some(function (FIX) {
+      var fixed = 0, free = 0;
+      items.forEach(function (it) { if (FIX[it.kind]) fixed += FIX[it.kind]; else free++; });
+      if (!fixed || !free || (len - fixed) / free < 0.3) return false;
+      var fw = (len - fixed) / free, x = 0;
+      items.forEach(function (it) { var ww = FIX[it.kind] || fw; it.x = r1(x); it.w = r1(ww); x += ww; });
+      return true;
+    });
+    return items;
+  }
+
+  function upperUnits(a, b, style, out) {
+    var len = b - a;
+    if (len < 0.25) return;
+    if (style === 'shelves') { out.push({ t: 'shelf', x: r1(a), w: r1(len) }); return; }
+    var m = Math.max(1, Math.round(len / 0.6)), w = len / m;
+    for (var j = 0; j < m; j++) out.push({ t: 'upper', x: r1(a + j * w), w: r1(w), hingeLeft: j % 2 === 0 });
+  }
+
+  function tallUnits(list, end, out) {
+    var x = end;
+    list.forEach(function (t) { x -= t.w; out.push({ t: 'tall', x: r1(x), w: t.w, kind: t.kind }); });
+    return x;
+  }
+
+  function kitchen(s) {
+    var shape = s.shape || 'straight';
+    var W = clamp(s.wall || 4.2, 2.4, 6.0), S = clamp(s.side || 2.4, 1.2, 3.6);
+    var corner = shape === 'l' || shape === 'u';
+    var RET = BASE_D + 0.02; // a side run starts in front of the back run
+    var talls = [];
+    if (s.pantry === 'on') talls.push({ w: 0.9, kind: 'pantry' });
+    if (s.fridge === 'on') talls.push({ w: 0.92, kind: 'fridge' });
+    var tallW = talls.reduce(function (a, t) { return a + t.w; }, 0);
+    // in a U kitchen the tall cupboards go at the open end of the right wall, so they don't block the corner
+    var tallsOnRight = shape === 'u' && S - tallW >= 0.55;
+    var B = tallsOnRight ? W : W - tallW;
+    var cnt = countFor(B, s.bases, 0.3, 1.0, 0.6);
+    var n = cnt.n, uw = B / n;
+    var cook = Math.round((B / 2) / uw - 0.5);
+    var back = { id: 'back', label: 'Back wall', len: W, pos: [-W / 2, 0], rot: 0, bench: [0, B], splash: [0, B], items: [] };
+    back.items = baseUnits(B, n, { cook: cook, sink: true, dishwasher: s.dishwasher !== 'off', cornerL: corner, cornerR: shape === 'u' });
+    if (!tallsOnRight) tallUnits(talls, W, back.items);
+    var oven = back.items.filter(function (it) { return it.kind === 'oven'; })[0];
+    var hoodW = Math.min(0.9, Math.max(0.6, oven.w + 0.1)), hoodC = oven.x + oven.w / 2;
+    var hood = { t: 'hood', x: r1(hoodC - hoodW / 2), w: r1(hoodW) };
+    back.items.push(hood);
+    var ups = s.overheads || 'full';
+    if (ups !== 'none') {
+      upperUnits(0, hood.x, ups, back.items);
+      upperUnits(hood.x + hood.w, B, ups, back.items);
+    }
+    var runs = [back];
+    var reach = RET - UP_D; // side overheads run back to meet the back overheads
+    function sideRun(id, label, pos, rot, isRight) {
+      var bl = isRight && tallsOnRight ? S - tallW : S;
+      var c2 = countFor(bl, 0, 0.3, 1.0, 0.6);
+      var run = { id: id, label: label, len: S, pos: pos, rot: rot, bench: [0, bl], splash: ups === 'none' ? null : [0, bl], items: baseUnits(bl, c2.n) };
+      if (isRight && tallsOnRight) tallUnits(talls, S, run.items);
+      if (ups !== 'none') { if (isRight) upperUnits(-reach, bl, ups, run.items); else upperUnits(0, S + reach, ups, run.items); }
+      return run;
+    }
+    if (corner) runs.push(sideRun('left', 'Left wall', [-W / 2, RET + S], Math.PI / 2, false));
+    if (shape === 'u') runs.push(sideRun('right', 'Right wall', [W / 2, RET], -Math.PI / 2, true));
+    var gz = BASE_D + 1.2 + BASE_D;
+    if (shape === 'galley') {
+      var cg = countFor(W, 0, 0.3, 1.0, 0.6);
+      runs.push({ id: 'opp', label: 'Opposite wall', len: W, pos: [W / 2, gz], rot: Math.PI, bench: [0, W], splash: null, items: baseUnits(W, cg.n) });
+    }
+    var island = null, iMax = shape === 'u' ? W - 2 * RET - 1.8 : shape === 'l' ? W - RET - 1.6 : W - 0.4;
+    iMax = Math.max(1.2, Math.min(3.6, iMax));
+    if (s.island === 'on' && shape !== 'galley') {
+      var L = clamp(s.islandLen || 2.4, 1.2, iMax);
+      var ic = countFor(L, 0, 0.3, 1.0, 0.6);
+      island = { len: L, cx: shape === 'l' ? RET / 2 + 0.3 : 0, z: BASE_D + 1.05, depth: 0.62, overhang: 0.34, items: baseUnits(L, ic.n), seats: Math.max(1, Math.floor(L / 0.6)), waterfall: s.bench !== 'timber' };
+      island.items.forEach(function (it, i) { it.kind = i === 0 || i === ic.n - 1 ? 'drawers' : 'door'; });
+    }
+    var depth = Math.max(3.6, shape === 'galley' ? gz + 1.2 : (island ? island.z + 1.9 : 2.6), corner ? RET + S + 1.0 : 0);
+    return {
+      kind: 'kitchen', shape: shape, runs: runs, island: island, room: { w: W, d: depth, h: 2.7, sideWalls: corner || shape === 'galley' },
+      limits: { bases: [cnt.min, cnt.max], islandLen: [1.2, r1(iMax)] }, counts: { bases: n },
+      sizes: { wall: W, side: S, islandLen: island ? island.len : 0 },
+      target: [0, 1.1, Math.min(1.6, depth / 2.4)], radius: Math.max(5.6, W * 1.15 + 1.4, corner ? S * 1.3 + 3 : 0)
+    };
+  }
+
+  /* ---------------- wardrobes ---------------- */
+  function builtin(s) {
+    var W = clamp(s.width || 2.4, 0.9, 4.8), H = clamp(s.height || 2.4, 2.1, 2.7);
+    var hinged = s.wdoors === 'hinged';
+    var dc = hinged ? countFor(W, s.doorCount, 0.3, 0.65, 0.6) : countFor(W, s.panelCount, 0.6, 1.6, 1.0);
+    if (!hinged) { dc.min = Math.max(2, dc.min); dc.max = Math.min(4, Math.max(dc.min, dc.max)); dc.n = clamp(dc.n, dc.min, dc.max); }
+    var nd = dc.n;
+    var nsec = hinged ? Math.ceil(nd / 2) : nd;
+    var sections = fit(s.bsec, nsec, MIX[s.internals] || MIX.balanced);
+    var run = { id: 'wall', label: 'Wall', len: W, pos: [-W / 2, 0], rot: 0, items: [] };
+    var sw = W / nsec;
+    sections.forEach(function (k, i) { run.items.push({ t: 'bay', x: r1(i * sw), w: r1(sw), kind: k }); });
+    if (hinged) {
+      // doors in pairs over sections; an odd door count gives a single door on the last section
+      var x = 0, di = 0;
+      for (var i2 = 0; i2 < nsec; i2++) {
+        var pair = (i2 < nsec - 1 || nd % 2 === 0) ? 2 : 1, dw = sw / pair;
+        for (var p = 0; p < pair; p++) { run.items.push({ t: 'door', x: r1(x + p * dw), w: r1(dw), hingeLeft: p === 1 || pair === 1 ? false : true, single: pair === 1, idx: di++ }); }
+        if (pair === 2) run.items[run.items.length - 1].hingeLeft = false, run.items[run.items.length - 2].hingeLeft = true;
+        x += sw;
+      }
+    } else {
+      var pw = W / nd + 0.04;
+      for (var k2 = 0; k2 < nd; k2++) run.items.push({ t: 'slide', x: r1(k2 * ((W - pw) / Math.max(1, nd - 1))), w: r1(pw), layer: k2 % 2 });
+    }
+    return {
+      kind: 'builtin', runs: [run], height: H, room: { w: W, d: 3.2, h: Math.max(2.7, H + 0.2), sideWalls: false },
+      sections: { wall: sections }, limits: { doors: [dc.min, dc.max] }, counts: { doors: nd },
+      sizes: { width: W, height: H },
+      target: [0, H / 2 + 0.05, 0.5], radius: Math.max(4.6, W * 1.25 + 2.2)
+    };
+  }
+
+  function walkin(s) {
+    var shape = s.wshape || 'u';
+    var W = clamp(s.wwidth || 3.2, 1.8, 4.0), S = clamp(s.wside || 1.6, 1.0, 3.0), H = 2.4;
+    var pat = MIX[s.internals] || MIX.balanced;
+    var sec = s.wsec || {};
+    var out = { back: null, left: null, right: null };
+    var runs = [];
+    var wc = s.wcount || {}, lim = {};
+    function nsec(id, len) {
+      var lo = Math.max(1, Math.ceil(len / 1.2 - 1e-6)), hi = Math.max(lo, Math.floor(len / 0.45 + 1e-6));
+      lim[id] = [lo, hi];
+      return clamp(wc[id] || Math.round(len / 0.8), lo, hi);
+    }
+    var nb = nsec('back', W);
+    out.back = fit(sec.back, nb, pat);
+    runs.push({ id: 'back', label: 'Back wall', len: W, pos: [-W / 2, 0], rot: 0, sections: out.back });
+    if (shape === 'l' || shape === 'u') {
+      out.left = fit(sec.left, nsec('left', S), pat, 3);
+      runs.push({ id: 'left', label: 'Left wall', len: S, pos: [-W / 2, 0.6 + S], rot: Math.PI / 2, sections: out.left });
+    }
+    if (shape === 'u') {
+      out.right = fit(sec.right, nsec('right', S), pat, 1);
+      runs.push({ id: 'right', label: 'Right wall', len: S, pos: [W / 2, 0.6], rot: -Math.PI / 2, sections: out.right });
+    }
+    runs.forEach(function (r) {
+      var bw = r.len / r.sections.length;
+      r.items = r.sections.map(function (k, i) { return { t: 'bay', x: r1(i * bw), w: r1(bw), kind: k }; });
+    });
+    return {
+      kind: 'walkin', runs: runs, height: H, room: { w: W, d: shape === 'straight' ? 2.6 : 0.6 + S + 0.9, h: 2.7, sideWalls: shape !== 'straight' },
+      shape: shape, sections: out, limits: lim, sizes: { wwidth: W, wside: S },
+      target: [0, 1.2, 0.9], radius: Math.max(5.0, W * 1.2 + 1.6)
+    };
+  }
+
+  function build(mode, s) {
+    if (mode === 'wardrobe') return s.wtype === 'walkin' ? walkin(s) : builtin(s);
+    return kitchen(s);
+  }
+
+  window.JCLayout = {
+    build: build, SECTION: SECTION, MIX: MIX, fit: fit,
+    dims: { KICK: KICK, BASE_TOP: BASE_TOP, BENCH_T: BENCH_T, BASE_D: BASE_D, UP_BOT: UP_BOT, UP_TOP: UP_TOP, UP_D: UP_D, TALL_TOP: TALL_TOP }
+  };
+})();

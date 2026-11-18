@@ -33,8 +33,8 @@
   sun.position.set(3.5, 6, 6);
   sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024);
-  sun.shadow.camera.left = -5; sun.shadow.camera.right = 5;
-  sun.shadow.camera.top = 5; sun.shadow.camera.bottom = -5;
+  sun.shadow.camera.left = -6; sun.shadow.camera.right = 6;
+  sun.shadow.camera.top = 6; sun.shadow.camera.bottom = -6;
   sun.shadow.bias = -0.0008;
   scene.add(sun);
   var fill = new T.DirectionalLight(0xffffff, 0.14);
@@ -152,6 +152,7 @@
     black: std('#1b1b1b', 0.35, 0.2),
     glass: std('#2a2c2e', 0.12, 0.4),
     steel: std('#a7abaf', 0.35, 0.7),
+    fridge: std('#c3c7cb', 0.3, 0.25),
     inner: std('#f7f4ef', 0.7),
     mirror: std('#e9eff3', 0.08, 0.35, { emissive: '#8a959c', emissiveIntensity: 0.35 }),
     led: new T.MeshBasicMaterial({ color: '#fff1cc' }),
@@ -241,174 +242,205 @@
   }
 
   /* ---------- kitchen ---------- */
-  function buildKitchen(s) {
-    room(6, 4, 2.7, false);
-    var baseM = cabinetMat(s.base), upM = cabinetMat(s.upper), bM = benchMat(s.bench), hd = s.handle, st = s.door;
-    var x0 = -2.25, x1 = s.layout === 'pantry' ? 1.35 : 2.25;
-    var kickH = 0.15, baseTop = 0.87, benchT = 0.04, D0 = 0.56;
-    var hoodW = 0.9, hoodX = (x0 + x1) / 2 - hoodW / 2;
+  var DM = window.JCLayout.dims, KICK = DM.KICK, BASE_TOP = DM.BASE_TOP, BENCH_T = DM.BENCH_T, UP_BOT = DM.UP_BOT, UP_TOP = DM.UP_TOP, UP_D = DM.UP_D, TALL_TOP = DM.TALL_TOP;
+  var CEIL = 2.7, D0 = 0.56;
 
-    // base carcass, kick, fronts
-    box(world, x0, kickH, 0, x1 - x0, baseTop - kickH, D0 - 0.002, baseM);
-    box(world, x0, 0, 0, x1 - x0, kickH, D0 - 0.06, M.kick);
-    var n = Math.max(3, Math.round((x1 - x0) / 0.6)), uw = (x1 - x0) / n;
-    var ovenIdx = Math.floor((hoodX + hoodW / 2 - x0) / uw);
-    for (var i = 0; i < n; i++) {
-      var x = x0 + i * uw, h = baseTop - kickH;
-      if (i === ovenIdx) {
-        front(world, x, baseTop - 0.16, D0, uw, 0.16, baseM, { style: st, handle: hd, drawer: true });
-        box(world, x + 0.02, kickH + 0.02, D0, uw - 0.04, h - 0.2, 0.02, M.glass);
-        box(world, x + 0.06, kickH + h - 0.26, D0 + 0.02, uw - 0.12, 0.015, 0.02, M.steel, true);
-      } else if (i % 3 === 0) {
-        for (var k = 0; k < 3; k++) front(world, x, kickH + k * h / 3, D0, uw, h / 3, baseM, { style: st, handle: hd, drawer: true });
-      } else {
-        front(world, x, kickH, D0, uw, h, baseM, { style: st, handle: hd, hingeLeft: i % 2 === 1 });
-      }
-    }
-    // benchtop
-    box(world, x0 - 0.02, baseTop, 0, x1 - x0 + 0.04, benchT, 0.62, bM);
-    var bTop = baseTop + benchT;
-
-    // splashback
-    var upBot = 1.5, upTop = 2.2;
-    var sw = x1 - x0, sh = upBot - bTop;
-    var splashM;
-    if (s.splash === 'subway') {
-      splashM = std(0xffffff, 0.3, 0, { map: TEX.subway.clone() });
-      splashM.map.needsUpdate = true;
-      splashM.map.repeat.set(sw / 0.6, sh / 0.3);
-    } else if (s.splash === 'glass') splashM = M.glass;
-    else splashM = bM;
-    box(world, x0, bTop, 0, sw, sh, 0.012, splashM);
-
-    // overheads with rangehood gap
-    var UD = 0.34;
-    function upperRun(a, b) {
-      if (b - a < 0.2) return;
-      box(world, a, upBot, 0, b - a, upTop - upBot, UD - 0.002, upM);
-      var m = Math.max(1, Math.round((b - a) / 0.55)), w = (b - a) / m;
-      for (var j = 0; j < m; j++) front(world, a + j * w, upBot, UD, w, upTop - upBot, upM, { style: st, handle: hd, upper: true, hingeLeft: j % 2 === 0 });
-    }
-    upperRun(x0, hoodX);
-    upperRun(hoodX + hoodW, x1);
-    // rangehood canopy and cooktop
-    box(world, hoodX, 1.78, 0, hoodW, upTop - 1.78, 0.42, upM);
-    box(world, hoodX - 0.01, 1.74, 0, hoodW + 0.02, 0.04, 0.46, M.steel);
-    box(world, hoodX + 0.13, bTop, 0.06, hoodW - 0.26, 0.008, 0.5, M.black, true);
-    // bulkhead to ceiling
-    box(world, x0, upTop, 0, x1 - x0, 2.7 - upTop, UD, M.ceiling);
-
-    // sink and tap
-    var sinkX = x0 + 0.65;
-    box(world, sinkX, bTop + 0.001, 0.12, 0.7, 0.004, 0.4, M.steel, true);
+  function tap(parent, x, z, bTop, hd) {
     var tapM = hd === 'brass' ? handleMat('brass') : hd === 'steel' ? handleMat('steel') : handleMat('black');
-    cyl(world, 0.014, 0.3, tapM, 'y', sinkX + 0.35, bTop + 0.15, 0.08);
+    cyl(parent, 0.014, 0.3, tapM, 'y', x, bTop + 0.15, z);
     var arc = new T.Mesh(new T.TorusGeometry(0.09, 0.012, 8, 16, Math.PI), tapM);
     arc.rotation.y = Math.PI / 2;
-    arc.position.set(sinkX + 0.35, bTop + 0.3, 0.17);
-    world.add(arc);
+    arc.position.set(x, bTop + 0.3, z + 0.09);
+    parent.add(arc);
+  }
 
-    // pantry
-    if (s.layout === 'pantry') {
-      var px = x1 + 0.02, pw = 2.25 - px, ph = 2.2;
-      box(world, px, kickH, 0, pw, ph - kickH, 0.6, upM);
-      box(world, px, 0, 0, pw, kickH, 0.54, M.kick);
-      front(world, px, kickH, 0.6, pw / 2, ph - kickH, upM, { style: st, handle: hd, tall: true, hingeLeft: false });
-      front(world, px + pw / 2, kickH, 0.6, pw / 2, ph - kickH, upM, { style: st, handle: hd, tall: true, hingeLeft: true });
-      box(world, px, ph, 0, pw, 2.7 - ph, 0.6, M.ceiling);
+  function kitchenItem(g, it, i, c) {
+    var x = it.x, w = it.w, st = c.st, hd = c.hd, h = BASE_TOP - KICK, bTop = BASE_TOP + BENCH_T;
+    if (it.t === 'base') {
+      box(g, x, KICK, 0, w, h, D0 - 0.002, c.baseM);
+      box(g, x, 0, 0, w, KICK, D0 - 0.06, M.kick);
+      if (it.kind === 'drawers') { for (var k = 0; k < 3; k++) front(g, x, KICK + k * h / 3, D0, w, h / 3, c.baseM, { style: st, handle: hd, drawer: true }); }
+      else if (it.kind === 'oven') {
+        front(g, x, BASE_TOP - 0.16, D0, w, 0.16, c.baseM, { style: st, handle: hd, drawer: true });
+        box(g, x + 0.02, KICK + 0.02, D0, w - 0.04, h - 0.2, 0.02, M.glass);
+        box(g, x + 0.06, KICK + h - 0.26, D0 + 0.02, w - 0.12, 0.015, 0.02, M.steel, true);
+        box(g, x + Math.max(0.03, (w - 0.62) / 2), bTop, 0.06, Math.min(0.62, w - 0.06), 0.008, 0.5, M.black, true);
+      } else if (it.kind === 'dw') front(g, x, KICK, D0, w, h, c.baseM, { style: st, handle: hd, drawer: true });
+      else if (it.kind === 'corner') {
+        var pw = w * 0.42;
+        if (it.side === 'L') { box(g, x, KICK, D0, pw, h, 0.018, c.baseM); front(g, x + pw, KICK, D0, w - pw, h, c.baseM, { style: st, handle: hd }); }
+        else { front(g, x, KICK, D0, w - pw, h, c.baseM, { style: st, handle: hd, hingeLeft: true }); box(g, x + w - pw, KICK, D0, pw, h, 0.018, c.baseM); }
+      } else if (w > 0.65) {
+        front(g, x, KICK, D0, w / 2, h, c.baseM, { style: st, handle: hd, hingeLeft: false });
+        front(g, x + w / 2, KICK, D0, w / 2, h, c.baseM, { style: st, handle: hd, hingeLeft: true });
+      } else front(g, x, KICK, D0, w, h, c.baseM, { style: st, handle: hd, hingeLeft: i % 2 === 1 });
+      if (it.kind === 'sink') {
+        var sw = Math.min(0.7, w - 0.1);
+        box(g, x + (w - sw) / 2, bTop + 0.001, 0.12, sw, 0.004, 0.4, M.steel, true);
+        tap(g, x + w / 2, 0.08, bTop, hd);
+      }
+    } else if (it.t === 'upper') {
+      box(g, x, UP_BOT, 0, w, UP_TOP - UP_BOT, UP_D - 0.002, c.upM);
+      front(g, x, UP_BOT, UP_D, w, UP_TOP - UP_BOT, c.upM, { style: st, handle: hd, upper: true, hingeLeft: it.hingeLeft });
+      box(g, x, UP_TOP, 0, w, CEIL - UP_TOP, UP_D, M.ceiling);
+    } else if (it.t === 'shelf') {
+      [1.62, 1.98].forEach(function (y, j) {
+        box(g, x, y, 0, w, 0.035, 0.26, c.upM);
+        for (var p = 0; p < Math.floor(w / 0.35); p++) {
+          var ph = 0.12 + ((p + j) % 2) * 0.06;
+          cyl(g, 0.05, ph, [M.pot, CLOTHES[5], CLOTHES[1], M.leaf][(p + j) % 4], 'y', x + 0.2 + p * 0.35, y + 0.035 + ph / 2, 0.13);
+        }
+      });
+    } else if (it.t === 'hood') {
+      box(g, x, 1.78, 0, w, UP_TOP - 1.78, 0.42, c.upM);
+      box(g, x - 0.01, 1.74, 0, w + 0.02, 0.04, 0.46, M.steel);
+      box(g, x, UP_TOP, 0, w, CEIL - UP_TOP, 0.42, M.ceiling);
+    } else if (it.t === 'tall') {
+      if (it.kind === 'pantry') {
+        box(g, x, KICK, 0, w, TALL_TOP - KICK, 0.6, c.upM);
+        box(g, x, 0, 0, w, KICK, 0.54, M.kick);
+        front(g, x, KICK, 0.6, w / 2, TALL_TOP - KICK, c.upM, { style: st, handle: hd, tall: true, hingeLeft: false });
+        front(g, x + w / 2, KICK, 0.6, w / 2, TALL_TOP - KICK, c.upM, { style: st, handle: hd, tall: true, hingeLeft: true });
+      } else {
+        // fridge space: side panels, bridging cupboard above, and a fridge for scale
+        box(g, x, 0, 0, 0.018, TALL_TOP, 0.62, c.upM);
+        box(g, x + w - 0.018, 0, 0, 0.018, TALL_TOP, 0.62, c.upM);
+        box(g, x + 0.018, 1.9, 0, w - 0.036, TALL_TOP - 1.9, 0.6, c.upM);
+        front(g, x + 0.018, 1.9, 0.6, w - 0.036, TALL_TOP - 1.9, c.upM, { style: st, handle: hd, upper: true, hingeLeft: true });
+        box(g, x + 0.04, 0, 0.02, w - 0.08, 1.82, 0.62, M.fridge);
+        box(g, x + w / 2 - 0.03, 1.1, 0.64, 0.014, 0.45, 0.02, M.black, true);
+        box(g, x + w / 2 + 0.016, 1.1, 0.64, 0.014, 0.45, 0.02, M.black, true);
+      }
+      box(g, x, TALL_TOP, 0, w, CEIL - TALL_TOP, 0.62, M.ceiling);
     }
+  }
 
-    // island
-    if (s.layout !== 'wall') {
-      var iz = 1.55, iw = 2.4, ix = -iw / 2, idp = 0.62;
+  function buildKitchen(s) {
+    var m = D.model();
+    room(m.room.w, m.room.d, CEIL, m.room.sideWalls);
+    var c = { baseM: cabinetMat(s.base), upM: cabinetMat(s.upper), bM: benchMat(s.bench), hd: s.handle, st: s.door };
+    var bTop = BASE_TOP + BENCH_T;
+    var splashH = s.overheads === 'none' ? 0.3 : UP_BOT - bTop;
+    m.runs.forEach(function (r) {
+      var g = new T.Group();
+      g.position.set(r.pos[0], 0, r.pos[1]);
+      g.rotation.y = r.rot;
+      world.add(g);
+      r.items.forEach(function (it, i) { kitchenItem(g, it, i, c); });
+      if (r.bench) box(g, r.bench[0], BASE_TOP, 0, r.bench[1] - r.bench[0], BENCH_T, 0.62, c.bM);
+      if (r.splash) {
+        var sw = r.splash[1] - r.splash[0], sm;
+        if (s.splash === 'subway') {
+          sm = std(0xffffff, 0.3, 0, { map: TEX.subway.clone() });
+          sm.map.needsUpdate = true;
+          sm.map.repeat.set(sw / 0.6, splashH / 0.3);
+        } else sm = s.splash === 'glass' ? M.glass : c.bM;
+        box(g, r.splash[0], bTop, 0, sw, splashH, 0.012, sm);
+      }
+      if (r.id === 'back' && r.bench) {
+        var px = r.bench[1] - 0.35;
+        cyl(g, 0.07, 0.14, M.pot, 'y', px, bTop + 0.07, 0.3);
+        var leaf = new T.Mesh(new T.SphereGeometry(0.14, 10, 8), M.leaf);
+        leaf.position.set(px, bTop + 0.25, 0.3);
+        leaf.castShadow = true;
+        g.add(leaf);
+      }
+    });
+
+    if (m.island) {
+      var I = m.island, iw = I.len, ix = -iw / 2, idp = I.depth, hd = s.handle;
       var isl = new T.Group();
       // build facing +z in local space (doors toward the wall), then turn it around
-      box(isl, ix, kickH, 0, iw, baseTop - kickH, idp, baseM);
-      box(isl, ix, 0, 0.06, iw, kickH, idp - 0.06, M.kick);
-      var m = 4, w = iw / m;
-      for (var q = 0; q < m; q++) {
-        if (q === 0 || q === 3) for (var r = 0; r < 3; r++) front(isl, ix + q * w, kickH + r * (baseTop - kickH) / 3, idp, w, (baseTop - kickH) / 3, baseM, { style: st, handle: hd, drawer: true });
-        else front(isl, ix + q * w, kickH, idp, w, baseTop - kickH, baseM, { style: st, handle: hd, hingeLeft: q % 2 === 1 });
-      }
-      var waterfall = s.bench !== 'timber';
-      box(isl, ix - (waterfall ? 0.04 : 0.02), baseTop, -0.32, iw + (waterfall ? 0.08 : 0.04), benchT, idp + 0.34, bM);
-      if (waterfall) {
-        box(isl, ix - 0.04, 0, -0.32, 0.04, baseTop, idp + 0.34, bM);
-        box(isl, ix + iw, 0, -0.32, 0.04, baseTop, idp + 0.34, bM);
+      box(isl, ix, KICK, 0, iw, BASE_TOP - KICK, idp, c.baseM);
+      box(isl, ix, 0, 0.06, iw, KICK, idp - 0.06, M.kick);
+      I.items.forEach(function (it, q) {
+        if (it.kind === 'drawers') for (var r = 0; r < 3; r++) front(isl, ix + it.x, KICK + r * (BASE_TOP - KICK) / 3, idp, it.w, (BASE_TOP - KICK) / 3, c.baseM, { style: s.door, handle: hd, drawer: true });
+        else front(isl, ix + it.x, KICK, idp, it.w, BASE_TOP - KICK, c.baseM, { style: s.door, handle: hd, hingeLeft: q % 2 === 1 });
+      });
+      var wf = I.waterfall;
+      box(isl, ix - (wf ? 0.04 : 0.02), BASE_TOP, -I.overhang, iw + (wf ? 0.08 : 0.04), BENCH_T, idp + I.overhang, c.bM);
+      if (wf) {
+        box(isl, ix - 0.04, 0, -I.overhang, 0.04, BASE_TOP, idp + I.overhang, c.bM);
+        box(isl, ix + iw, 0, -I.overhang, 0.04, BASE_TOP, idp + I.overhang, c.bM);
       }
       isl.rotation.y = Math.PI;
-      isl.position.set(0, 0, iz + idp);
+      isl.position.set(I.cx, 0, I.z + idp);
       world.add(isl);
-      // stools on the seating side
       var sm = hd === 'brass' ? handleMat('brass') : handleMat('black');
-      [-0.7, 0, 0.7].forEach(function (sx) {
-        var sz = iz + idp + 0.5;
+      var seats = Math.min(I.seats, 5), sz = I.z + idp + 0.5;
+      for (var q = 0; q < seats; q++) {
+        var sx = I.cx - iw / 2 + (q + 0.5) * iw / seats;
         cyl(world, 0.19, 0.05, M.stool, 'y', sx, 0.66, sz);
         [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (p) {
           var leg = cyl(world, 0.011, 0.66, sm, 'y', sx + p[0] * 0.12, 0.32, sz + p[1] * 0.12);
           leg.rotation.z = p[0] * 0.08; leg.rotation.x = -p[1] * 0.08;
         });
         cyl(world, 0.008, 0.26, sm, 'x', sx, 0.26, sz + 0.12);
-      });
-      // pendants
-      [-0.75, 0, 0.75].forEach(function (px2) {
-        cyl(world, 0.004, 0.75, M.black, 'y', px2, 2.32, iz + 0.45);
-        var shade = new T.Mesh(new T.SphereGeometry(0.13, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), hd === 'brass' ? handleMat('brass') : M.black);
-        shade.material.side = T.DoubleSide;
-        shade.position.set(px2, 1.82, iz + 0.45);
-        world.add(shade);
+      }
+      var np = Math.min(3, Math.max(1, Math.round(iw / 0.8))), gap = Math.min(0.75, iw / 3);
+      for (var p2 = 0; p2 < np; p2++) {
+        var px2 = I.cx + (p2 - (np - 1) / 2) * gap, pz = I.z + 0.45;
+        cyl(world, 0.004, 0.75, M.black, 'y', px2, 2.32, pz);
+        var lamp = new T.Mesh(new T.SphereGeometry(0.13, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), hd === 'brass' ? handleMat('brass') : M.black);
+        lamp.material.side = T.DoubleSide;
+        lamp.position.set(px2, 1.82, pz);
+        world.add(lamp);
         var bulb = new T.Mesh(new T.SphereGeometry(0.04, 10, 8), M.bulb);
-        bulb.position.set(px2, 1.8, iz + 0.45);
+        bulb.position.set(px2, 1.8, pz);
         world.add(bulb);
-      });
+      }
     }
-
-    // a plant on the bench
-    cyl(world, 0.07, 0.14, M.pot, 'y', x1 - 0.45, bTop + 0.07, 0.3);
-    var leaf = new T.Mesh(new T.SphereGeometry(0.14, 10, 8), M.leaf);
-    leaf.position.set(x1 - 0.45, bTop + 0.25, 0.3);
-    leaf.castShadow = true;
-    world.add(leaf);
-
-    return { target: new T.Vector3(0, 1.1, 1.0), radius: 6.0 };
+    return { target: new T.Vector3(m.target[0], m.target[1], m.target[2]), radius: m.radius };
   }
 
   /* ---------- wardrobes ---------- */
   function buildBuiltin(s) {
-    room(6, 4, 2.7, false);
+    var m = D.model(), run = m.runs[0];
+    var W = run.len, H = m.height, Dp = 0.6, x0 = -W / 2, open = s.showInside === 'on';
+    room(Math.max(6, W + 2), 4, CEIL, false);
     var cm = cabinetMat(s.finish), hd = s.handle;
-    var x0 = -1.5, w = 3, H = 2.4, Dp = 0.6;
     var trimM = hd === 'none' ? handleMat('none') : handleMat(hd);
-    box(world, x0, 0, 0, w, H, Dp - 0.002, cm);
-    box(world, x0, H, 0, w, 2.7 - H, Dp, M.ceiling);
+    var inside = new T.Group();
+    inside.position.x = x0;
+    world.add(inside);
+    bays(inside, W, m.sections.wall, cm, s, H, false, 0.07);
+    box(world, x0, H, 0, W, CEIL - H, Dp, M.ceiling);
     if (s.wdoors === 'hinged') {
-      box(world, x0, 0, 0, w, 0.1, Dp - 0.06, M.kick);
-      var n = 6, dw = w / n;
-      for (var i = 0; i < n; i++) front(world, x0 + i * dw, 0.1, Dp, dw, H - 0.1, cm, { style: s.door, handle: hd, tall: true, hingeLeft: i % 2 === 1 });
+      run.items.forEach(function (it) {
+        if (it.t !== 'door') return;
+        var o = { style: s.door, handle: hd, tall: true, hingeLeft: it.hingeLeft };
+        if (!open) return front(world, x0 + it.x, 0.08, Dp, it.w, H - 0.08, cm, o);
+        var pg = new T.Group();
+        pg.position.set(x0 + it.x + (it.hingeLeft ? 0 : it.w), 0, Dp);
+        front(pg, it.hingeLeft ? 0 : -it.w, 0.08, 0, it.w, H - 0.08, cm, o);
+        pg.rotation.y = it.hingeLeft ? -1.3 : 1.3;
+        world.add(pg);
+      });
     } else {
-      var pn = 3, pw = w / pn + 0.04;
-      for (var k = 0; k < pn; k++) {
-        var px = x0 + k * ((w - pw) / (pn - 1)), pz = Dp + (k % 2 ? 0.035 : 0);
+      run.items.forEach(function (it, k) {
+        if (it.t !== 'slide') return;
+        // with "show inside" the doors slide over to the left end
+        var px = open ? x0 + k * 0.05 : x0 + it.x, pw = it.w, pz = Dp + (it.layer ? 0.035 : 0);
+        if (open && k > 0) return;
         var panelM = s.wdoors === 'mirror' ? M.mirror : cm;
         box(world, px + 0.025, 0.04, pz, pw - 0.05, H - 0.08, 0.016, panelM);
-        // aluminium frame
         box(world, px, 0.03, pz - 0.004, 0.025, H - 0.06, 0.028, trimM);
         box(world, px + pw - 0.025, 0.03, pz - 0.004, 0.025, H - 0.06, 0.028, trimM);
         box(world, px, H - 0.06, pz - 0.004, pw, 0.03, 0.028, trimM);
         box(world, px, 0.03, pz - 0.004, pw, 0.03, 0.028, trimM);
-      }
-      box(world, x0, H - 0.03, Dp - 0.01, w, 0.03, 0.09, trimM);
-      box(world, x0, 0, Dp - 0.01, w, 0.03, 0.09, trimM);
+      });
+      box(world, x0, H - 0.03, Dp - 0.01, W, 0.03, 0.09, trimM);
+      box(world, x0, 0, Dp - 0.01, W, 0.03, 0.09, trimM);
     }
     // wall returns so the robe sits in a recess, plus a rug for scale
-    box(world, x0 - 0.12, 0, 0, 0.12, 2.7, Dp + 0.08, M.sidewall);
-    box(world, x0 + w, 0, 0, 0.12, 2.7, Dp + 0.08, M.sidewall);
-    box(world, -1.1, 0.001, 1.25, 2.2, 0.006, 1.0, std('#cdbfab', 0.95), true);
-    return { target: new T.Vector3(0, 1.2, 0.5), radius: 6.0 };
+    box(world, x0 - 0.12, 0, 0, 0.12, CEIL, Dp + 0.08, M.sidewall);
+    box(world, x0 + W, 0, 0, 0.12, CEIL, Dp + 0.08, M.sidewall);
+    box(world, -Math.min(1.1, W / 2), 0.001, 1.25, Math.min(2.2, W), 0.006, 1.0, std('#cdbfab', 0.95), true);
+    return { target: new T.Vector3(m.target[0], m.target[1], m.target[2]), radius: m.radius };
   }
 
-  function bays(parent, length, list, cm, s) {
-    var H = 2.4, Dp = 0.6, bw = length / list.length, gt = 0.018;
+  function bays(parent, length, list, cm, s, H, light, inset) {
+    var Dp = 0.6, dz = Dp - (inset || 0.02), bw = length / list.length, gt = 0.018, f = H / 2.4;
     var trimM = s.handle === 'none' ? handleMat('none') : handleMat(s.handle);
     box(parent, 0, 0, 0, length, H, 0.012, M.inner); // back
     box(parent, 0, H - gt, 0, length, gt, Dp, cm);    // top
@@ -416,8 +448,9 @@
     for (var g = 0; g <= list.length; g++) box(parent, Math.min(g * bw, length - gt), 0, 0, gt, H, Dp, cm);
     list.forEach(function (b, i) {
       var bx = i * bw + gt, iw = bw - gt;
-      if (s.light === 'on') box(parent, bx, H - gt - 0.012, 0.05, iw, 0.01, 0.03, M.led, true);
+      if (light) box(parent, bx, H - gt - 0.012, 0.05, iw, 0.01, 0.03, M.led, true);
       box(parent, bx, 0.08, 0.012, iw, gt, Dp - 0.02, cm); // base shelf
+      function shelf(y) { box(parent, bx, y, 0.012, iw, gt, Dp - 0.02, cm); }
       function rail(y, len) {
         cyl(parent, 0.01, iw, trimM, 'x', bx + iw / 2, y, Dp / 2);
         var count = Math.floor((iw - 0.08) / 0.055);
@@ -426,25 +459,21 @@
           cl.rotation.y = (q % 2 ? 0.08 : -0.06);
         }
       }
-      function drawers(n) {
-        var dh = 0.85 / n;
-        for (var q = 0; q < n; q++) front(parent, bx, 0.1 + q * dh, Dp - 0.02, iw, dh, cm, { style: 'flat', handle: s.handle, drawer: true });
-        box(parent, bx, 0.95, 0.012, iw, gt, Dp - 0.02, cm);
-      }
-      if (b === 'hang') { box(parent, bx, 2.0, 0.012, iw, gt, Dp - 0.02, cm); rail(1.92, 1.25); }
-      if (b === 'hang2') { box(parent, bx, 2.05, 0.012, iw, gt, Dp - 0.02, cm); rail(1.97, 0.8); box(parent, bx, 1.05, 0.012, iw, gt, Dp - 0.02, cm); rail(0.99, 0.75); }
-      if (b === 'shelf') for (var sy = 0.45; sy < 2.2; sy += 0.36) {
-        box(parent, bx, sy, 0.012, iw, gt, Dp - 0.02, cm);
+      if (b === 'hang') { shelf(2.0 * f); rail(1.92 * f, 1.25 * f); }
+      if (b === 'hang2') { shelf(2.05 * f); rail(1.97 * f, 0.8 * f); shelf(1.05 * f); rail(0.99 * f, 0.75 * f); }
+      if (b === 'shelf') for (var sy = 0.45; sy < H - 0.2; sy += 0.36) {
+        shelf(sy);
         box(parent, bx + 0.06, sy + gt, 0.12, iw - 0.12, 0.12, 0.34, CLOTHES[Math.floor(sy * 10) % CLOTHES.length]);
       }
       if (b === 'drawers') {
-        drawers(4);
-        for (var y2 = 1.35; y2 < 2.2; y2 += 0.4) box(parent, bx, y2, 0.012, iw, gt, Dp - 0.02, cm);
+        var dh = 0.85 / 4;
+        for (var q = 0; q < 4; q++) front(parent, bx, 0.1 + q * dh, dz, iw, dh, cm, { style: 'flat', handle: s.handle, drawer: true });
+        shelf(0.95);
+        for (var y2 = 1.35; y2 < H - 0.2; y2 += 0.4) shelf(y2);
         box(parent, bx + 0.08, 1.37, 0.15, iw - 0.16, 0.2, 0.3, CLOTHES[4]);
       }
-      if (b === 'shoes') for (var hy = 0.35; hy < 2.2; hy += 0.3) {
-        var sh = box(parent, bx, hy, 0.05, iw, gt, Dp - 0.08, cm);
-        sh.rotation.x = 0.25;
+      if (b === 'shoes') for (var hy = 0.35; hy < H - 0.2; hy += 0.3) {
+        box(parent, bx, hy, 0.05, iw, gt, Dp - 0.08, cm).rotation.x = 0.25;
         for (var p = 0; p < Math.floor(iw / 0.16); p++) {
           box(parent, bx + 0.03 + p * 0.16, hy + 0.03, 0.22, 0.09, 0.08, 0.26, p % 2 ? M.kick : CLOTHES[3]).rotation.x = 0.25;
         }
@@ -453,42 +482,29 @@
   }
 
   function buildWalkin(s) {
-    var W = 3.2, Dd = 2.6;
-    room(W, Dd, 2.7, true);
+    var m = D.model(), H = m.height;
+    room(m.room.w, m.room.d, CEIL, m.room.sideWalls);
     var cm = cabinetMat(s.finish);
-    var sets = {
-      balanced: [['hang2', 'shelf', 'drawers', 'hang'], ['hang', 'shoes'], ['hang2', 'drawers']],
-      hanging: [['hang2', 'hang', 'shelf', 'hang2'], ['hang', 'hang2'], ['hang2', 'hang']],
-      drawers: [['shoes', 'drawers', 'hang', 'drawers'], ['shoes', 'drawers'], ['hang2', 'shoes']]
-    }[s.internals] || [['hang2', 'shelf', 'drawers', 'hang'], ['hang', 'shoes'], ['hang2', 'drawers']];
-    var back = new T.Group();
-    bays(back, W, sets[0], cm, s);
-    back.position.set(-W / 2, 0, 0);
-    world.add(back);
-    var sideLen = Dd - 0.6 - 0.4;
-    var left = new T.Group();
-    bays(left, sideLen, sets[1], cm, s);
-    left.rotation.y = Math.PI / 2;
-    left.position.set(-W / 2, 0, 0.6 + sideLen);
-    world.add(left);
-    var right = new T.Group();
-    bays(right, sideLen, sets[2], cm, s);
-    right.rotation.y = -Math.PI / 2;
-    right.position.set(W / 2, 0, 0.6);
-    world.add(right);
-    // ceiling bulkheads above units
-    box(world, -W / 2, 2.4, 0, W, 0.3, 0.6, M.ceiling);
-    // centre ottoman and rug
-    box(world, -0.9, 0.001, 0.95, 1.8, 0.006, 1.2, std('#cdbfab', 0.95), true);
-    box(world, -0.35, 0, 1.3, 0.7, 0.42, 0.45, std('#b9a58c', 0.95));
+    m.runs.forEach(function (r) {
+      var g = new T.Group();
+      bays(g, r.len, r.sections, cm, s, H, s.light === 'on');
+      box(g, 0, H, 0, r.len, CEIL - H, 0.6, M.ceiling);
+      g.rotation.y = r.rot;
+      g.position.set(r.pos[0], 0, r.pos[1]);
+      world.add(g);
+    });
+    var free = Math.max(0.9, m.room.d - 0.6), inner = m.room.w - (m.shape === 'u' ? 1.2 : m.shape === 'l' ? 0.6 : 0);
+    var cx = m.shape === 'l' ? 0.3 : 0, cz = 0.6 + Math.min(free, 2.0) / 2;
+    var rw = Math.min(1.8, inner - 0.4);
+    box(world, cx - rw / 2, 0.001, cz - 0.6, rw, 0.006, 1.2, std('#cdbfab', 0.95), true);
+    if (inner > 1.5) box(world, cx - 0.35, 0, cz - 0.22, 0.7, 0.42, 0.45, std('#b9a58c', 0.95));
     if (s.light === 'on') {
       var glow = new T.PointLight(0xffe3b0, 0.45, 5, 2);
       glow.position.set(0, 2.2, 1.0);
       world.add(glow);
     }
-    return { target: new T.Vector3(0, 1.2, 0.9), radius: 5.4 };
+    return { target: new T.Vector3(m.target[0], m.target[1], m.target[2]), radius: m.radius };
   }
-
   /* ---------- camera control ---------- */
   var view = { theta: 0.42, phi: 1.22, radius: 6, target: new T.Vector3(0, 1.1, 1) };
   var lastMode = null;
@@ -521,7 +537,7 @@
       lastPinch = dist;
       return;
     }
-    view.theta = clamp(view.theta - (e.clientX - p.x) * 0.008, -1.25, 1.25);
+    view.theta = clamp(view.theta - (e.clientX - p.x) * 0.008, -1.45, 1.45);
     view.phi = clamp(view.phi - (e.clientY - p.y) * 0.006, 0.75, 1.5);
     pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
     draw();
@@ -538,7 +554,7 @@
     zoom(e.deltaY > 0 ? 1.08 : 0.93);
   }, { passive: false });
   function zoom(f) {
-    view.radius = clamp(view.radius * f, 2.6, 9);
+    view.radius = clamp(view.radius * f, 2.6, 13);
     draw();
   }
   host.querySelectorAll('[data-d3]').forEach(function (b) {
@@ -566,12 +582,12 @@
     var mode = D.mode, s = D.state, frame;
     if (mode === 'wardrobe') frame = s.wtype === 'walkin' ? buildWalkin(s) : buildBuiltin(s);
     else frame = buildKitchen(s);
-    var key = mode + (mode === 'wardrobe' ? s.wtype : '');
+    var key = mode + (mode === 'wardrobe' ? s.wtype + (s.wtype === 'walkin' ? s.wshape : '') : s.shape);
     if (key !== lastMode) {
       lastMode = key;
       view.target.copy(frame.target);
       view.radius = frame.radius * (host.clientWidth && host.clientWidth < 520 ? 0.8 : 1);
-      view.theta = mode === 'wardrobe' && s.wtype === 'walkin' ? 0.2 : 0.42;
+      view.theta = mode === 'wardrobe' && s.wtype === 'walkin' ? 0.2 : mode === 'kitchen' && s.shape === 'galley' ? 0.75 : mode === 'kitchen' && s.shape !== 'straight' ? 0.3 : 0.42;
       view.phi = 1.22;
     }
     draw();
