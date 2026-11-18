@@ -273,6 +273,17 @@
       data.access_key = WEB3FORMS_KEY;
       data.subject = 'New quote request: ' + (data.project || 'website') + ' (' + (data.suburb || '') + ')';
       data.from_name = 'Joinerycraft website';
+      /* order the email: who, what, then the design. The long cabinet list stays out of the email;
+         it downloads from the snapshot link along with the 3D model. */
+      var order = ['name', 'phone', 'email', 'suburb', 'project', 'stage', 'timing', 'budget', 'source', 'details'];
+      var out = { access_key: data.access_key, subject: data.subject, from_name: data.from_name, replyto: data.email || '' };
+      order.forEach(function (k) { if (data[k]) out[k] = data[k]; });
+      if (data.design_link) out['Open their 3D design (snapshot, cabinet list and 3D model download)'] = data.design_link;
+      if (data.design_details) out['Design details'] = data.design_details;
+      Object.keys(data).forEach(function (k) {
+        if (!(k in out) && data[k] && ['design', 'design_link', 'design_details', 'cabinet_list'].indexOf(k) === -1) out[k] = data[k];
+      });
+      data = out;
       fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
