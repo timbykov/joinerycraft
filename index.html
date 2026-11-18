@@ -239,12 +239,20 @@
               <span class="link-arrow">Explore vanities</span>
             </div>
           </a>
-          <a class="service-card" href="#projects" data-filter-link="living">
-            <img src="images/projects/thumbs/study-room.webp" alt="Custom home study joinery" loading="lazy">
+          <a class="service-card" href="laundries.html">
+            <img src="images/projects/thumbs/shaker-laundry.webp" alt="Shaker laundry with farmhouse tub" loading="lazy">
             <div class="service-body">
-              <h3>Study, living &amp; laundry</h3>
-              <p>Floating TV and entertainment units, laundries, study desks and storage that makes the most of awkward spaces.</p>
-              <span class="link-arrow">See living joinery</span>
+              <h3>Laundries</h3>
+              <p>Full laundry rooms, European laundries behind doors and stacked washer and dryer towers with storage for everything.</p>
+              <span class="link-arrow">Explore laundries</span>
+            </div>
+          </a>
+          <a class="service-card" href="living.html">
+            <img src="images/projects/thumbs/tv-unit.webp" alt="Floating TV unit" loading="lazy">
+            <div class="service-body">
+              <h3>Study, TV &amp; living</h3>
+              <p>Floating TV units, home office desks, bookcases and storage that makes the most of awkward spaces.</p>
+              <span class="link-arrow">Explore living joinery</span>
             </div>
           </a>
           <a class="service-card" href="commercial.html">
@@ -266,6 +274,11 @@
                 <li>100+ styles, colours &amp; finishes</li>
               </ul>
               <a href="#quote" class="btn btn-accent">Start my free quote</a>
+            </div>
+            <div class="service-body">
+              <p class="eyebrow eyebrow-light">Choosing finishes?</p>
+              <p class="cta-sub">Browse door colours, Polytec boards, stone benchtops and Blum hardware before your visit.</p>
+              <a href="materials.html" class="btn btn-ghost-light">See colours &amp; materials</a>
             </div>
           </div>
         </div>
@@ -435,12 +448,25 @@
         <div class="section-head">
           <p class="eyebrow">Design creator</p>
           <h2>Design your kitchen or wardrobe in a minute.</h2>
-          <p class="section-lede">Play with layouts, doors, colours, finishes and handles. When you like it, send it to us and we'll turn it into a full 3D design and quote for your space.</p>
+          <p class="section-lede">Play with layouts, doors, colours, finishes and handles, then turn it around in 3D. When you like it, send it to us and we'll draw it up properly to your measurements with a quote.</p>
         </div>
 
         <div class="designer" id="designer">
           <div class="designer-stage">
+            <div class="view-toggle" role="group" aria-label="Preview view">
+              <button type="button" class="view-btn is-active" data-view="2d" aria-pressed="true">Front view</button>
+              <button type="button" class="view-btn" data-view="3d" aria-pressed="false">3D view <span class="view-new">New</span></button>
+            </div>
             <div class="designer-preview" id="designPreview" role="img" aria-label="Preview of your design"></div>
+            <div class="designer-preview designer-3d" id="design3d" hidden>
+              <div class="d3-controls">
+                <button type="button" class="d3-btn" data-d3="in" aria-label="Zoom in">+</button>
+                <button type="button" class="d3-btn" data-d3="out" aria-label="Zoom out">&minus;</button>
+                <button type="button" class="d3-btn d3-reset" data-d3="reset">Reset</button>
+              </div>
+              <p class="d3-hint">Drag to look around · scroll or pinch to zoom</p>
+              <p class="d3-loading">Building your 3D room&hellip;</p>
+            </div>
             <p class="designer-summary" id="designSummary" aria-live="polite"></p>
             <p class="designer-note">Illustration only. Your designer draws a full 3D design to your measurements.</p>
           </div>
@@ -643,6 +669,27 @@
       </div>
     </section>
 
+    <!-- BUILDERS & DESIGNERS -->
+    <section class="section trade-section" id="trade">
+      <div class="container trade">
+        <div class="trade-copy">
+          <p class="eyebrow">Builders, architects &amp; designers</p>
+          <h2>A joinery partner that keeps your job on track.</h2>
+          <p>Already have plans? We work from architect, interior designer and builder drawings, and fit our installs around your program and the other trades. You get one point of contact from measure to handover, and a clean site ready for the next trade.</p>
+          <div class="btn-row">
+            <a href="#quote" class="btn btn-accent" data-project="Builder or designer project">Send us your plans</a>
+            <a href="tel:1300205498" class="btn btn-outline">Call 1300 205 498</a>
+          </div>
+        </div>
+        <ul class="trade-list">
+          <li><strong>Built from your drawings</strong><span>We price and build from your plans and joinery schedules, and draw it up for sign-off before anything is cut.</span></li>
+          <li><strong>Made in our own workshop</strong><span>Cut, edged and assembled in Chipping Norton, so we control quality and lead times.</span></li>
+          <li><strong>Installs to your program</strong><span>We book site measures and installs around your schedule and coordinate with plumbers and electricians.</span></li>
+          <li><strong>Residential to commercial</strong><span>Single homes, renovations, granny flats and multi-unit jobs, plus shop and office fit-outs.</span></li>
+        </ul>
+      </div>
+    </section>
+
     <!-- QUOTE -->
     <section class="section section-tint" id="quote">
       <div class="container quote">
@@ -681,6 +728,7 @@
               <label class="choice"><input type="radio" name="project" value="Laundry"><span>Laundry</span></label>
               <label class="choice"><input type="radio" name="project" value="TV / living / study"><span>TV, living or study</span></label>
               <label class="choice"><input type="radio" name="project" value="Commercial fit-out"><span>Commercial fit-out</span></label>
+              <label class="choice"><input type="radio" name="project" value="Builder or designer project"><span>Builder or designer project</span></label>
               <label class="choice"><input type="radio" name="project" value="Showroom visit"><span>Book a showroom visit</span></label>
               <label class="choice"><input type="radio" name="project" value="Something else"><span>Something else</span></label>
             </div>
@@ -861,7 +909,7 @@
       </div>
       <div>
         <h3>Services</h3>
-        <p><a href="kitchens.html">Kitchens</a><br><a href="wardrobes.html">Wardrobes</a><br><a href="vanities.html">Vanities &amp; bathrooms</a><br><a href="commercial.html">Commercial fit-outs</a></p>
+        <p><a href="kitchens.html">Kitchens</a><br><a href="wardrobes.html">Wardrobes</a><br><a href="vanities.html">Vanities &amp; bathrooms</a><br><a href="laundries.html">Laundries</a><br><a href="living.html">Study, TV &amp; living</a><br><a href="commercial.html">Commercial fit-outs</a><br><a href="materials.html">Colours &amp; materials</a><br><a href="/#trade">Builders &amp; designers</a></p>
       </div>
     </div>
     <div class="container footer-bottom">

@@ -413,3 +413,69 @@ body { position: relative; }
   body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   #nl-badge-frame { bottom: calc(88px + env(safe-area-inset-bottom)) !important; }
 }
+
+/* Designer: front / 3D view toggle */
+.view-toggle { display: inline-grid; grid-template-columns: 1fr 1fr; background: var(--tint); border-radius: 999px; padding: 4px; margin-bottom: .85rem; }
+.view-btn { border: 0; background: transparent; padding: .45rem 1.15rem; border-radius: 999px; font-weight: 700; font-size: .88rem; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; gap: .4rem; }
+.view-btn.is-active { background: var(--ink); color: #fff; }
+.view-new { font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; background: var(--oak); color: #fff; border-radius: 999px; padding: .1rem .45rem; }
+.designer-3d { position: relative; aspect-ratio: 20 / 13; background: #efe9e0; }
+.designer-3d[hidden] { display: none; }
+.d3-canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.designer-3d.is-dragging .d3-canvas { cursor: grabbing; }
+.d3-controls { position: absolute; top: .6rem; right: .6rem; display: flex; gap: .35rem; z-index: 2; }
+.d3-btn { min-width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.92); color: var(--ink); font-weight: 700; font-size: 1rem; padding: 0 .6rem; }
+.d3-btn:hover { border-color: var(--ink); }
+.d3-reset { font-size: .78rem; }
+.d3-hint { position: absolute; left: .75rem; bottom: .6rem; margin: 0; font-size: .78rem; color: var(--muted); background: rgba(255,255,255,.88); padding: .2rem .6rem; border-radius: 999px; pointer-events: none; }
+.d3-loading { display: none; position: absolute; inset: 0; margin: 0; align-items: center; justify-content: center; color: var(--muted); font-weight: 600; }
+.designer-3d.is-loading .d3-loading { display: flex; }
+.designer-3d.is-loading .d3-hint, .designer-3d.is-loading .d3-controls { display: none; }
+.d3-error { position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 1.5rem; color: var(--muted); }
+@media (max-width: 640px) { .d3-hint { font-size: .7rem; } .view-btn { padding: .4rem .9rem; } }
+
+/* Services: full-width "included" strip under the six service cards */
+.services-grid .service-card-cta { grid-column: 1 / -1; flex-direction: row; align-items: stretch; }
+.services-grid .service-card-cta .service-body { padding: 2rem; }
+.services-grid .service-card-cta .service-body + .service-body { border-left: 1px solid rgba(255,255,255,.14); }
+.services-grid .service-card-cta .check-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.5rem; }
+.cta-sub { color: rgba(255,255,255,.75); margin: 0; }
+@media (max-width: 900px) {
+  .services-grid .service-card-cta { flex-direction: column; }
+  .services-grid .service-card-cta .service-body + .service-body { border-left: 0; border-top: 1px solid rgba(255,255,255,.14); }
+}
+@media (max-width: 640px) { .services-grid .service-card-cta .check-list { grid-template-columns: 1fr; } .services-grid .service-card-cta .service-body { padding: 1.5rem; } }
+
+/* Builders & designers */
+.trade-section { border-top: 1px solid var(--line); }
+.trade { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+.trade-copy p:not(.eyebrow) { color: var(--muted); font-size: 1.05rem; }
+.trade-copy .btn-row { margin-top: 1.5rem; }
+.trade-list { display: grid; gap: 1rem; }
+.trade-list li { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.15rem 1.35rem 1.15rem 3.4rem; position: relative; }
+.trade-list li::before { content: ""; position: absolute; left: 1.25rem; top: 1.3rem; width: 22px; height: 22px; border-radius: 50%; background: var(--oak) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/12px no-repeat; }
+.trade-list strong { display: block; margin-bottom: .2rem; }
+.trade-list span { color: var(--muted); font-size: .93rem; }
+@media (max-width: 900px) { .trade { grid-template-columns: 1fr; gap: 2rem; } }
+
+/* Colours & materials page */
+.mat-text { color: var(--muted); font-size: .95rem; margin-bottom: 1rem; }
+.mat-links { display: flex; flex-wrap: wrap; gap: 1.25rem; }
+.mat-head { margin: 3rem 0 1.25rem; font-size: 1.15rem; }
+.mat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+.mat-grid-5 { margin-top: 2rem; }
+.mat-swatch { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: .75rem; display: flex; flex-direction: column; gap: .15rem; }
+.mat-swatch strong { font-size: .95rem; margin-top: .5rem; }
+.mat-swatch span:not(.mat-chip) { font-size: .82rem; color: var(--muted); }
+.mat-chip { display: block; aspect-ratio: 4 / 3; border-radius: 10px; border: 1px solid rgba(0,0,0,.08); }
+.mat-oak { background-image: repeating-linear-gradient(176deg, rgba(120,80,40,.0) 0 7px, rgba(120,80,40,.16) 7px 9px, rgba(255,240,210,.12) 9px 13px) !important; }
+.mat-walnut { background-image: repeating-linear-gradient(176deg, rgba(0,0,0,0) 0 7px, rgba(0,0,0,.2) 7px 9px, rgba(255,220,180,.08) 9px 13px) !important; }
+.mat-marble { background-image: linear-gradient(160deg, transparent 30%, rgba(150,145,135,.45) 31%, transparent 33%), linear-gradient(120deg, transparent 60%, rgba(150,145,135,.3) 61%, transparent 63%) !important; }
+.mat-none { background-image: repeating-linear-gradient(135deg, #fff 0 6px, #ece8e1 6px 8px) !important; }
+.mat-grid-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+.mat-grid-list .mat-swatch { padding: .5rem; }
+.mat-grid-list .mat-chip { aspect-ratio: 3 / 1; }
+.mat-grid-list .mat-swatch strong { font-size: .85rem; margin-top: .3rem; }
+.mat-suppliers { margin-top: 2.5rem; border-top: 1px solid var(--line); }
+.designer-promo .btn-row { margin: 0; }
+.trade h2 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 1.25rem; }

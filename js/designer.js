@@ -198,6 +198,7 @@
     svg += '</svg>';
     document.getElementById('designPreview').innerHTML = svg;
     syncControls();
+    if (window.JC3D && view3d) window.JC3D.update();
   }
 
   function render() {
@@ -288,6 +289,7 @@
     svg += '</svg>';
     document.getElementById('designPreview').innerHTML = svg;
     syncControls();
+    if (window.JC3D && view3d) window.JC3D.update();
   }
 
   function syncControls() {
@@ -374,6 +376,45 @@
       radio.checked = true;
       radio.dispatchEvent(new Event('change', { bubbles: true }));
     }
+  });
+
+  /* 3D view: three.js is only downloaded the first time someone opens it */
+  var view3d = false, loading3d = false;
+  window.JCDesigner = {
+    get mode() { return mode; },
+    get state() { return state; },
+    CABINET: CABINET, BENCH: BENCH, HANDLE: HANDLE
+  };
+  var pane3d = document.getElementById('design3d');
+  var pane2d = document.getElementById('designPreview');
+  function loadScript(src, cb) {
+    var s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = cb;
+    s.onerror = function () { pane3d.classList.remove('is-loading'); pane3d.insertAdjacentHTML('beforeend', '<p class="d3-error">The 3D view couldn\'t load. Check your connection and try again.</p>'); loading3d = false; };
+    document.head.appendChild(s);
+  }
+  function setView(v) {
+    view3d = v === '3d';
+    root.querySelectorAll('[data-view]').forEach(function (b) {
+      var on = b.dataset.view === v;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    pane2d.hidden = view3d;
+    pane3d.hidden = !view3d;
+    if (!view3d) return;
+    if (window.JC3D) return window.JC3D.update();
+    if (loading3d) return;
+    loading3d = true;
+    pane3d.classList.add('is-loading');
+    var three = window.THREE ? function (cb) { cb(); } : function (cb) { loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js', cb); };
+    three(function () {
+      loadScript('js/designer3d.js', function () { pane3d.classList.remove('is-loading'); });
+    });
+  }
+  root.querySelectorAll('[data-view]').forEach(function (b) {
+    b.addEventListener('click', function () { setView(b.dataset.view); });
   });
 
   render();
