@@ -18,7 +18,8 @@
   function heights() { BASE_H = (DIM.BASE_TOP - DIM.KICK) * 1000; UP_H = (DIM.UP_TOP - DIM.UP_BOT) * 1000; TALL_H = (DIM.TALL_TOP - DIM.KICK) * 1000; }
   var BASE_DESC = {
     door: function (w) { return w > 650 ? '2 door base' : '1 door base'; },
-    drawers: function () { return '3 drawer base'; },
+    drawers: function (w, it) { return (it.dn || 3) + ' drawer ' + (D.mode === 'vanity' ? 'vanity' : 'base'); },
+    tub: function (w) { return (w > 650 ? '2 door' : '1 door') + ' laundry tub base'; },
     oven: function () { return 'Oven housing with drawer above'; },
     sink: function (w) { return (w > 650 ? '2 door' : '1 door') + ' sink base'; },
     dw: function () { return 'Dishwasher space with integrated panel'; },
@@ -32,6 +33,7 @@
       rows.push({ location: loc, type: type, description: desc, width: r(w), height: r(h), depth: r(d), qty: qty || 1,
         door: mat ? door : '', brand: mat ? mat.brand : '', colour: mat ? mat.name : '', handles: mat ? hd : '', notes: notes || '' });
     }
+    var V = D.mode === 'vanity', bDepth = r((DIM.BASE_D + 0.04) * 1000), bT = r(DIM.BENCH_T * 1000);
     var kick = 0, benchName = bench.val === 'timber' ? 'Timber' : bench.brand + ' ' + bench.name;
     var sp = { subway: 'Subway tile (by others)', stone: 'Stone to match benchtop', glass: 'Smoked glass' }[s.splash];
     var splashH = s.overheads === 'none' ? 300 : (DIM.UP_BOT - DIM.BASE_TOP - DIM.BENCH_T) * 1000;
@@ -39,14 +41,26 @@
       var loc = run.label;
       run.items.forEach(function (it) {
         var w = it.w * 1000;
-        if (it.t === 'base') {
+        if (it.t === 'base' && (it.kind === 'washer' || it.kind === 'dryer')) {
+          rows.push({ location: loc, type: 'Space', description: (it.kind === 'washer' ? 'Washing machine' : 'Dryer') + ' space under bench', width: r(w), height: r(DIM.BASE_TOP * 1000), depth: 0, qty: 1, door: '', brand: '', colour: '', handles: '', notes: 'Front loader by others' });
+        } else if (it.t === 'base') {
           kick += w;
-          add(loc, 'Base', BASE_DESC[it.kind](w), w, BASE_H, r(DIM.BASE_D * 1000 - 20), 1, base,
-            { oven: 'Under cooktop', sink: 'Sink and tap above', dw: '600 mm dishwasher by others', corner: 'Blind corner, ' + (it.side === 'L' ? 'left' : 'right') + ' end' }[it.kind] || '');
+          add(loc, V ? 'Vanity' : 'Base', BASE_DESC[it.kind](w, it), w, BASE_H, r(DIM.BASE_D * 1000 - 20), 1, base,
+            ((V && DIM.FLOAT ? 'Wall-hung, ' + r(DIM.KICK * 1000) + ' mm off the floor. ' : '') +
+            ({ oven: 'Under cooktop', sink: 'Sink and tap above', tub: 'Inset laundry tub and tap above', dw: '600 mm dishwasher by others', corner: 'Blind corner, ' + (it.side === 'L' ? 'left' : 'right') + ' end' }[it.kind] || '')).trim());
+        } else if (it.t === 'mirror') {
+          if (it.kind === 'cabinet') add(loc, 'Wall', 'Mirror shaving cabinet', w, UP_H, r(DIM.UP_D * 1000), 1, up, (w > 650 ? '2' : '1') + ' mirror doors, bottom at ' + r(DIM.UP_BOT * 1000) + ' mm');
+          else rows.push({ location: loc, type: 'Mirror', description: 'Round mirror', width: r(Math.min(640, w)), height: r(Math.min(640, w)), depth: 0, qty: 1, door: '', brand: '', colour: '', handles: '', notes: 'By others, centred over basin' });
         } else if (it.t === 'upper') add(loc, 'Wall', '1 door wall cabinet', w, UP_H, r(DIM.UP_D * 1000), 1, up, '');
         else if (it.t === 'shelf') add(loc, 'Wall', 'Open shelves x 2', w, 35, 260, 2, up, 'Floating shelves at 1620 and 1980 mm');
         else if (it.t === 'hood') add(loc, 'Wall', 'Rangehood canopy', w, 420, 420, 1, up, 'Rangehood insert by others');
         else if (it.t === 'tall' && it.kind === 'pantry') { kick += w; add(loc, 'Tall', '2 door pantry', w, TALL_H, 600, 1, up, ''); }
+        else if (it.t === 'tall' && it.kind === 'broom') { kick += w; add(loc, 'Tall', '1 door broom cupboard', w, TALL_H, 600, 1, up, ''); }
+        else if (it.t === 'tall' && it.kind === 'linen') { if (!DIM.FLOAT) kick += w; add(loc, 'Tall', '1 door linen tower', w, TALL_H, r(DIM.BASE_D * 1000 - 20), 1, base, DIM.FLOAT ? 'Wall-hung' : ''); }
+        else if (it.t === 'tall' && it.kind === 'stack') {
+          add(loc, 'Wall', 'Cupboard over washer and dryer', w - 36, r((DIM.TALL_TOP - 1.8) * 1000), 600, 1, up, '');
+          add(loc, 'Panel', 'Washer/dryer tower end panels', 18, DIM.TALL_TOP * 1000, 620, 2, up, 'Stacked washer and dryer by others, space ' + r(w - 36) + ' mm wide');
+        }
         else if (it.t === 'tall') {
           add(loc, 'Wall', 'Bridging cupboard over fridge', w - 36, 300, 600, 1, up, '');
           add(loc, 'Panel', 'Fridge end panels', 18, DIM.TALL_TOP * 1000, 620, 2, up, 'Fridge space ' + r(w - 36) + ' mm wide');
@@ -54,7 +68,7 @@
       });
       if (run.bench) {
         var bl = (run.bench[1] - run.bench[0]) * 1000;
-        rows.push({ location: loc, type: 'Benchtop', description: '40 mm benchtop', width: r(bl), height: 40, depth: 620, qty: 1, door: '', brand: bench.brand, colour: bench.name, handles: '', notes: benchName });
+        rows.push({ location: loc, type: 'Benchtop', description: bT + ' mm ' + (V ? 'vanity top' : 'benchtop'), width: r(bl), height: bT, depth: bDepth, qty: 1, door: '', brand: bench.brand, colour: bench.name, handles: '', notes: benchName });
       }
       if (run.splash) rows.push({ location: loc, type: 'Splashback', description: sp, width: r((run.splash[1] - run.splash[0]) * 1000), height: r(splashH), depth: 0, qty: 1, door: '', brand: s.splash === 'stone' ? bench.brand : '', colour: s.splash === 'stone' ? bench.name : '', handles: '', notes: '' });
     });
@@ -67,7 +81,10 @@
       var wf = I.waterfall, iw = I.len * 1000 + (wf ? 80 : 40), idp = (I.depth + I.overhang) * 1000;
       rows.push({ location: 'Island', type: 'Benchtop', description: '40 mm island top with ' + r(I.overhang * 1000) + ' mm seating overhang' + (wf ? ' and 2 waterfall ends' : ''), width: r(iw), height: 40, depth: r(idp), qty: 1, door: '', brand: bench.brand, colour: bench.name, handles: '', notes: (wf ? 'Waterfall ends ' + r(idp) + ' x ' + r(DIM.BASE_TOP * 1000) + ' x 40. ' : '') + 'Seats ' + I.seats });
     }
-    add('All', 'Kickboard', 'Kickboards', kick, 150, 0, 1, null, 'Total length. Dark or matching, 150 mm high');
+    (m.runs[0].basins || []).forEach(function (cx, i) {
+      rows.push({ location: m.runs[0].label, type: 'Basin', description: 'Above-counter basin with wall tap', width: 400, height: 130, depth: 0, qty: 1, door: '', brand: '', colour: '', handles: '', notes: 'By others. Centre ' + r(cx * 1000) + ' mm from left end' });
+    });
+    if (kick > 0 && !DIM.FLOAT) add('All', 'Kickboard', 'Kickboards', kick, r(DIM.KICK * 1000), 0, 1, null, 'Total length. Dark or matching, ' + r(DIM.KICK * 1000) + ' mm high');
     return rows;
   }
 

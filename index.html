@@ -57,7 +57,7 @@
       "name": "How does the free 3D designer work?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Open the 3D designer on our homepage and choose a kitchen or wardrobe. Pick a layout, set your sizes, then choose colours, benchtop and handles from our real supplier ranges. You can turn it around in 3D and go full screen on your phone. It's free with no sign-up. When you're happy, tap Get a quote for this design and it comes to us with your quote request."
+        "text": "Open the 3D designer on our homepage and choose a kitchen, laundry, vanity or wardrobe. Pick a layout, set your sizes, then choose colours, benchtop and handles from our real supplier ranges. You can turn it around in 3D and go full screen on your phone. It's free with no sign-up. When you're happy, tap Get a quote for this design and it comes to us with your quote request."
       }
     },
     {
@@ -207,7 +207,7 @@
       <div class="container hero-inner">
         <p class="hero-badge"><span>New</span> Free online 3D designer</p>
         <h1><span class="h1-kicker">Custom kitchens, wardrobes &amp; joinery in Sydney</span>Design it in 3D.<br>We&rsquo;ll build it.</h1>
-        <p class="hero-lede">Plan your kitchen or wardrobe in our free 3D designer, with real Polytec, Laminex and stone colours. Then we make it in our Chipping Norton workshop and our own team installs it.</p>
+        <p class="hero-lede">Plan your kitchen, laundry, vanity or wardrobe in our free 3D designer, with real Polytec, Laminex and stone colours. Then we make it in our Chipping Norton workshop and our own team installs it.</p>
         <div class="hero-actions">
           <a href="#design" class="btn btn-accent btn-lg">Start designing in 3D</a>
           <a href="#quote" class="btn btn-ghost-light btn-lg">Get a free quote</a>
@@ -245,11 +245,11 @@
       <div class="container">
         <div class="section-head">
           <p class="eyebrow">Free 3D designer</p>
-          <h2>Design your kitchen or wardrobe in 3D. Free.</h2>
+          <h2>Design your kitchen, laundry, vanity or wardrobe in 3D. Free.</h2>
           <p class="section-lede">No waiting for a consultation to see your ideas. Start right now on your phone or computer, with no sign-up. When you like it, send it to us and we&rsquo;ll measure up and quote it.</p>
         </div>
         <ul class="designer-features">
-          <li><strong>Your layout</strong><span>Straight, L, U or galley kitchens with an island. Built-in or walk-in robes.</span></li>
+          <li><strong>Your layout</strong><span>Straight, L, U or galley kitchens with an island. Laundries, wall-hung vanities, built-in or walk-in robes.</span></li>
           <li><strong>Your sizes</strong><span>Set wall lengths, heights and how many cupboards and drawers you want.</span></li>
           <li><strong>Real colours</strong><span>Actual Polytec and Laminex boards, Caesarstone and Quantum Quartz benchtops.</span></li>
           <li><strong>Straight to a quote</strong><span>Send it with your quote request, or download a cabinet list and 3D model.</span></li>
@@ -280,6 +280,8 @@
           <div class="designer-controls" id="designControls">
             <div class="mode-tabs" role="group" aria-label="What are you designing?">
               <button type="button" class="mode-tab is-active" data-mode-tab="kitchen" aria-pressed="true">Kitchen</button>
+              <button type="button" class="mode-tab" data-mode-tab="laundry" aria-pressed="false">Laundry</button>
+              <button type="button" class="mode-tab" data-mode-tab="vanity" aria-pressed="false">Vanity</button>
               <button type="button" class="mode-tab" data-mode-tab="wardrobe" aria-pressed="false">Wardrobe</button>
             </div>
             <div class="opt-group" data-opt="shape" data-mode="kitchen">
@@ -291,15 +293,45 @@
                 <button type="button" class="opt" data-val="galley">Galley</button>
               </div>
             </div>
-            <div class="opt-group" data-opt="base" data-mode="kitchen">
+            <div class="opt-group" data-opt="machines" data-mode="laundry" hidden>
+              <h3>Washer &amp; dryer</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="stacked">Stacked tower</button>
+                <button type="button" class="opt" data-val="side">Side by side</button>
+                <button type="button" class="opt" data-val="washer">Washer only</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="mount" data-mode="vanity" hidden>
+              <h3>Style</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="wall">Wall-hung</button>
+                <button type="button" class="opt" data-val="floor">Floor-standing</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="basins" data-mode="vanity" hidden>
+              <h3>Basins</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="single">Single</button>
+                <button type="button" class="opt" data-val="double">Double</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="mirror" data-mode="vanity" hidden>
+              <h3>Mirror</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="round">Round mirror</button>
+                <button type="button" class="opt" data-val="cabinet">Shaving cabinet</button>
+                <button type="button" class="opt" data-val="none">None</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="base" data-mode="kitchen laundry vanity">
               <h3>Cabinet colour</h3>
               <div class="opt-row swatches" data-swatches="cabinet"></div>
             </div>
-            <div class="opt-group" data-opt="bench" data-mode="kitchen">
+            <div class="opt-group" data-opt="bench" data-mode="kitchen laundry vanity">
               <h3>Benchtop</h3>
               <div class="opt-row swatches" data-swatches="bench"></div>
             </div>
-            <div class="opt-group" data-opt="handle" data-mode="kitchen">
+            <div class="opt-group" data-opt="handle" data-mode="kitchen laundry vanity">
               <h3>Handles</h3>
               <div class="opt-row swatches" data-swatches="handle"></div>
             </div>
@@ -342,7 +374,30 @@
                 <button type="button" class="opt opt-toggle" data-toggle="dishwasher">Dishwasher</button>
               </div>
             </div>
-            <div class="opt-group" data-mode="kitchen" data-adv>
+            <div class="opt-group opt-sizes" data-mode="laundry" hidden data-adv>
+              <h3>Size &amp; cupboards</h3>
+              <label class="size-row"><span class="size-label">Laundry wall</span><input type="range" data-size="lwall" min="1.2" max="4.0" step="0.1" aria-label="Laundry wall in metres"><span class="size-num"><input type="number" data-size-mm="lwall" min="1200" max="4000" step="10" aria-label="Laundry wall in millimetres"> mm</span></label>
+              <div class="opt-row">
+                <button type="button" class="opt opt-toggle" data-toggle="broom">Broom cupboard</button>
+              </div>
+            </div>
+            <div class="opt-group opt-sizes" data-mode="vanity" hidden data-adv>
+              <h3>Size &amp; storage</h3>
+              <label class="size-row"><span class="size-label">Width</span><input type="range" data-size="vwall" min="0.6" max="2.4" step="0.05" aria-label="Vanity width in metres"><span class="size-num"><input type="number" data-size-mm="vwall" min="600" max="2400" step="10" aria-label="Vanity width in millimetres"> mm</span></label>
+              <label class="size-row"><span class="size-label">Height to top</span><input type="range" data-size="benchH" min="0.8" max="0.95" step="0.01" aria-label="Vanity height in metres"><span class="size-num"><input type="number" data-size-mm="benchH" min="800" max="950" step="10" aria-label="Vanity height in millimetres"> mm</span></label>
+              <label class="size-row"><span class="size-label">Depth</span><input type="range" data-size="baseD" min="0.38" max="0.56" step="0.01" aria-label="Vanity depth in metres"><span class="size-num"><input type="number" data-size-mm="baseD" min="380" max="560" step="10" aria-label="Vanity depth in millimetres"> mm</span></label>
+              <div class="opt-row">
+                <button type="button" class="opt opt-toggle" data-toggle="tower">Linen tower</button>
+              </div>
+            </div>
+            <div class="opt-group" data-opt="vfront" data-mode="vanity" hidden data-adv>
+              <h3>Fronts</h3>
+              <div class="opt-row">
+                <button type="button" class="opt" data-val="drawers">Drawers</button>
+                <button type="button" class="opt" data-val="doors">Doors</button>
+              </div>
+            </div>
+            <div class="opt-group" data-mode="kitchen laundry" data-adv>
               <h3>Heights &amp; depths</h3>
               <p class="opt-hint">Standard sizes are set for you. Change them to match your room.</p>
               <label class="size-row"><span class="size-label">Top of cupboards</span><input type="range" data-size="upTop" min="2.0" max="2.7" step="0.01" aria-label="Height to the top of the overheads and tall cupboards, in metres"><span class="size-num"><input type="number" data-size-mm="upTop" min="2000" max="2700" step="10" aria-label="Height to the top of the cupboards in millimetres"> mm</span></label>
@@ -351,7 +406,7 @@
               <label class="size-row" data-show="overheads=full"><span class="size-label">Overhead depth</span><input type="range" data-size="upD" min="0.3" max="0.4" step="0.01" aria-label="Overhead depth in metres"><span class="size-num"><input type="number" data-size-mm="upD" min="300" max="400" step="10" aria-label="Overhead depth in millimetres"> mm</span></label>
               <label class="size-row" data-show="fridge=on"><span class="size-label">Fridge space width</span><input type="range" data-size="fridgeW" min="0.7" max="1.0" step="0.01" aria-label="Fridge space width in metres"><span class="size-num"><input type="number" data-size-mm="fridgeW" min="700" max="1000" step="10" aria-label="Fridge space width in millimetres"> mm</span></label>
             </div>
-            <div class="opt-group" data-opt="overheads" data-mode="kitchen" data-adv>
+            <div class="opt-group" data-opt="overheads" data-mode="kitchen laundry" data-adv>
               <h3>Overheads</h3>
               <div class="opt-row">
                 <button type="button" class="opt" data-val="full">Cupboards</button>
@@ -359,7 +414,7 @@
                 <button type="button" class="opt" data-val="none">None</button>
               </div>
             </div>
-            <div class="opt-group" data-opt="door" data-mode="kitchen" data-adv>
+            <div class="opt-group" data-opt="door" data-mode="kitchen laundry vanity" data-adv>
               <h3>Door style</h3>
               <div class="opt-row">
                 <button type="button" class="opt" data-val="flat">Flat panel</button>
@@ -367,11 +422,11 @@
                 <button type="button" class="opt" data-val="fingerpull">Fingerpull</button>
               </div>
             </div>
-            <div class="opt-group" data-opt="upper" data-mode="kitchen" data-adv>
+            <div class="opt-group" data-opt="upper" data-mode="kitchen laundry" data-adv>
               <h3>Overhead colour</h3>
               <div class="opt-row swatches" data-swatches="cabinet"></div>
             </div>
-            <div class="opt-group" data-opt="splash" data-mode="kitchen" data-adv>
+            <div class="opt-group" data-opt="splash" data-mode="kitchen laundry" data-adv>
               <h3>Splashback</h3>
               <div class="opt-row">
                 <button type="button" class="opt" data-val="subway">Subway tile</button>
@@ -824,15 +879,14 @@
           <h2>A joinery partner that keeps your job on track.</h2>
           <p>Already have plans? We work from architect, interior designer and builder drawings, and fit our installs around your program and the other trades. You get one point of contact from measure to handover, and a clean site ready for the next trade.</p>
           <div class="btn-row">
-            <a href="#quote" class="btn btn-accent" data-project="Builder or designer project">Send us your plans</a>
-            <a href="tel:1300205498" class="btn btn-outline">Call 1300 205 498</a>
+            <a href="trade.html" class="btn btn-accent">Builders &amp; trade</a>
+            <a href="#quote" class="btn btn-outline" data-project="Builder or designer project">Send us your plans</a>
           </div>
         </div>
         <ul class="trade-list">
           <li><strong>Built from your drawings</strong><span>We price and build from your plans and joinery schedules, and draw it up for sign-off before anything is cut.</span></li>
           <li><strong>Made in our own workshop</strong><span>Cut, edged and assembled in Chipping Norton, so we control quality and lead times.</span></li>
           <li><strong>Installs to your program</strong><span>We book site measures and installs around your schedule and coordinate with plumbers and electricians.</span></li>
-          <li><strong>Residential to commercial</strong><span>Single homes, renovations, granny flats and multi-unit jobs, plus shop and office fit-outs.</span></li>
         </ul>
       </div>
     </section>
@@ -992,7 +1046,7 @@
         <div class="faq-list">
           <details>
             <summary>How does the free 3D designer work?</summary>
-            <p>Open the 3D designer on our homepage and choose a kitchen or wardrobe. Pick a layout, set your sizes, then choose colours, benchtop and handles from our real supplier ranges. You can turn it around in 3D and go full screen on your phone. It&#x27;s free with no sign-up. When you&#x27;re happy, tap Get a quote for this design and it comes to us with your quote request.</p>
+            <p>Open the 3D designer on our homepage and choose a kitchen, laundry, vanity or wardrobe. Pick a layout, set your sizes, then choose colours, benchtop and handles from our real supplier ranges. You can turn it around in 3D and go full screen on your phone. It&#x27;s free with no sign-up. When you&#x27;re happy, tap Get a quote for this design and it comes to us with your quote request.</p>
           </details>
           <details>
             <summary>Is my online design the final design?</summary>
@@ -1075,7 +1129,7 @@
       </div>
       <div>
         <h3>Services</h3>
-        <p><a href="kitchens.html">Kitchens</a><br><a href="wardrobes.html">Wardrobes</a><br><a href="vanities.html">Vanities &amp; bathrooms</a><br><a href="laundries.html">Laundries</a><br><a href="living.html">Study, TV &amp; living</a><br><a href="commercial.html">Commercial fit-outs</a><br><a href="materials.html">Colours &amp; materials</a><br><a href="projects.html">Projects by suburb</a><br><a href="measure.html">How to measure</a><br><a href="/#trade">Builders &amp; designers</a></p>
+        <p><a href="kitchens.html">Kitchens</a><br><a href="wardrobes.html">Wardrobes</a><br><a href="vanities.html">Vanities &amp; bathrooms</a><br><a href="laundries.html">Laundries</a><br><a href="living.html">Study, TV &amp; living</a><br><a href="commercial.html">Commercial fit-outs</a><br><a href="materials.html">Colours &amp; materials</a><br><a href="projects.html">Projects by suburb</a><br><a href="measure.html">How to measure</a><br><a href="trade.html">Builders &amp; designers</a></p>
       </div>
     </div>
     <div class="container footer-bottom">

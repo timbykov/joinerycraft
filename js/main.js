@@ -134,27 +134,105 @@
       steps.forEach(function (s, i) { s.classList.toggle('is-current', i === n); });
       bars.forEach(function (b, i) { b.classList.toggle('is-done', i <= n); });
       label.textContent = 'Step ' + (n + 1) + ' of ' + steps.length;
-      err.textContent = '';
+      err.innerHTML = ''; shown = false;
+      var nav = steps[n].querySelector('.form-nav');
+      if (nav) nav.parentNode.insertBefore(err, nav.nextSibling);
       var first = steps[n].querySelector('input:not([type=hidden]), select, textarea');
       if (first && n > 0) first.focus({ preventScroll: true });
     }
 
-    function validStep(n) {
-      var s = steps[n];
-      if (n === 0) {
-        if (!s.querySelector('input[name=project]:checked')) { err.textContent = 'Please choose what you are planning.'; return false; }
-        return true;
-      }
-      var ok = true;
-      s.querySelectorAll('[required]').forEach(function (f) {
-        var bad = !f.value.trim() || (f.type === 'email' && !/^\S+@\S+\.\S+$/.test(f.value));
-        f.classList.toggle('is-invalid', bad);
-        f.setAttribute('aria-invalid', String(bad));
-        if (bad && ok) { f.focus(); ok = false; }
-      });
-      if (!ok) err.textContent = 'Please fill in the highlighted fields.';
-      return ok;
+    /* Errors: each field with a problem gets a red outline, a tinted background and a message
+       under it; a summary next to the button links to each one. Fixing a field clears it straight away. */
+    var ICON = '<svg class="err-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="currentColor"/><path d="M8 4v5" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="8" cy="11.8" r="1.1" fill="#fff"/></svg>';
+    var MSG = {
+      project: 'Please choose what you are planning.',
+      stage: 'Please choose where you are at.',
+      timing: 'Please choose when you would like it done.',
+      budget: 'Please choose a rough budget.',
+      name: 'Please enter your name.',
+      suburb: 'Please enter your suburb.',
+      phone: 'Please enter a phone number we can call.',
+      email: 'Please enter your email address.'
+    };
+    var NAMES = { project: 'Project', stage: 'Stage', timing: 'Timing', budget: 'Budget', name: 'Name', suburb: 'Suburb', phone: 'Phone', email: 'Email' };
+    var shown = false;
+    function problem(f) {
+      if (f.type === 'radio') return form.querySelector('input[name="' + f.name + '"]:checked') ? '' : MSG[f.name];
+      var v = f.value.trim();
+      if (!v) return MSG[f.id] || 'Please fill this in.';
+      if (f.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'Please check your email address, e.g. name@example.com.';
+      if (f.type === 'tel' && v.replace(/\D/g, '').length < 8) return 'Please check your phone number.';
+      return '';
     }
+    function holder(f) { return f.type === 'radio' ? f.closest('.choice-grid') : f.closest('.field'); }
+    function mark(f, msg) {
+      var h = holder(f), key = f.type === 'radio' ? f.name : f.id;
+      if (!h) return;
+      h.classList.toggle('has-error', !!msg);
+      (f.type === 'radio' ? form.querySelectorAll('input[name="' + f.name + '"]') : [f]).forEach(function (x) { x.setAttribute('aria-invalid', String(!!msg)); });
+      var m = document.getElementById(key + '-err');
+      if (!m) {
+        m = document.createElement('p');
+        m.className = 'field-msg';
+        m.id = key + '-err';
+        h.parentNode.insertBefore(m, h.nextSibling);
+        if (f.type !== 'radio') h.appendChild(m);
+        (f.type === 'radio' ? form.querySelectorAll('input[name="' + f.name + '"]') : [f]).forEach(function (x) { x.setAttribute('aria-describedby', m.id); });
+      }
+      m.innerHTML = msg ? ICON + '<span>' + msg + '</span>' : '';
+      m.hidden = !msg;
+    }
+    function fieldsIn(n) {
+      var seen = {};
+      return Array.prototype.filter.call(steps[n].querySelectorAll('[required]'), function (f) {
+        if (f.type !== 'radio') return true;
+        if (seen[f.name]) return false;
+        return (seen[f.name] = true);
+      });
+    }
+    function summary(bad) {
+      if (!bad.length) { err.innerHTML = ''; return; }
+      var links = bad.map(function (f) {
+        var key = f.type === 'radio' ? f.name : f.id;
+        return '<a href="#' + (f.type === 'radio' ? 'quoteForm' : f.id) + '" data-jump="' + key + '">' + (NAMES[key] || key) + '</a>';
+      });
+      var list = links.length > 1 ? links.slice(0, -1).join(', ') + ' and ' + links[links.length - 1] : links[0];
+      err.innerHTML = ICON + '<span>Almost there: please check ' + list + '.</span>';
+    }
+    function validStep(n) {
+      var bad = [];
+      fieldsIn(n).forEach(function (f) {
+        var msg = problem(f);
+        mark(f, msg);
+        if (msg) bad.push(f);
+      });
+      shown = bad.length > 0;
+      summary(bad);
+      if (bad.length) {
+        var f0 = bad[0];
+        if (f0.type === 'radio') holder(f0).scrollIntoView({ block: 'center', behavior: 'smooth' });
+        else f0.focus();
+      }
+      return !bad.length;
+    }
+    function recheck(f) {
+      if (!f.required && f.type !== 'radio') return;
+      var h = holder(f);
+      if (!h || !h.classList.contains('has-error')) { if (!shown) return; }
+      mark(f, problem(f));
+      if (shown) summary(fieldsIn(step).filter(function (x) { return problem(x); }));
+    }
+    form.addEventListener('input', function (e) { recheck(e.target); });
+    form.addEventListener('change', function (e) { recheck(e.target); });
+    err.addEventListener('click', function (e) {
+      var a = e.target.closest('[data-jump]');
+      if (!a) return;
+      e.preventDefault();
+      var k = a.dataset.jump, f = document.getElementById(k) || form.querySelector('input[name="' + k + '"]');
+      if (!f) return;
+      if (f.type === 'radio') { holder(f).scrollIntoView({ block: 'center', behavior: 'smooth' }); f.focus({ preventScroll: true }); }
+      else { f.scrollIntoView({ block: 'center', behavior: 'smooth' }); f.focus({ preventScroll: true }); }
+    });
 
     form.querySelectorAll('[data-next]').forEach(function (b) {
       b.addEventListener('click', function () { if (validStep(step)) go(step + 1); });
@@ -203,7 +281,7 @@
         if (!j.success) throw new Error(j.message || 'failed');
         location.href = '/thank-you.html';
       }).catch(function () {
-        err.textContent = 'Sorry, that did not send. Please try again or call 1300 205 498.';
+        err.innerHTML = ICON + '<span>Sorry, that did not send. Please try again or call 1300 205 498.</span>';
         if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label; }
       });
     });
