@@ -13,7 +13,7 @@
   var CABINET = (window.JC_BOARDS || [{ val: 'p-classic-white', name: 'Classic White', brand: 'Polytec', hex: '#f7f6f2' }]).map(function (b) {
     return { val: b.val, name: b.name, brand: b.brand, group: b.group, wood: b.wood, swatch: b.hex, fill: b.wood ? 'url(#w-' + b.val + ')' : b.hex, edge: shade(b.hex, 0.82) };
   });
-  function cname(o) { return o.brand ? o.brand + ' ' + o.name : o.name.toLowerCase(); }
+  function cname(o) { return o.val === 'timber' ? 'timber' : o.brand ? o.brand + ' ' + o.name : o.name.toLowerCase(); }
   function woodDefs() {
     var out = '';
     CABINET.forEach(function (c) {
@@ -24,13 +24,22 @@
     });
     return out;
   }
-  var BENCH = [
-    { val: 'white', name: 'Pure white stone', fill: '#fbfbf9' },
-    { val: 'calacatta', name: 'Calacatta stone', fill: 'url(#marble)', swatch: '#f1efea' },
-    { val: 'concrete', name: 'Concrete grey stone', fill: '#a7a49f' },
-    { val: 'black', name: 'Black stone', fill: '#262524' },
-    { val: 'timber', name: 'Timber top', fill: 'url(#oak)', swatch: '#c9a06e' }
-  ];
+  /* Real Caesarstone and Quantum Quartz stone colours, plus timber (js/boards.js) */
+  var BENCH = (window.JC_STONES || [{ val: 'timber', name: 'Timber', brand: 'Timber', hex: '#c9a06e', group: 'Timber tops' }]).map(function (b) {
+    return { val: b.val, name: b.name, brand: b.brand, group: b.group, vein: b.vein, swatch: b.hex, fill: b.val === 'timber' ? 'url(#oak)' : b.vein ? 'url(#v-' + b.val + ')' : b.hex };
+  });
+  function veinDefs() {
+    var out = '';
+    BENCH.forEach(function (c) {
+      if (!c.vein) return;
+      var dark = parseInt(c.swatch.slice(1, 3), 16) < 0x80;
+      var v1 = dark ? shade(c.swatch, 1.55) : shade(c.swatch, 0.74), v2 = dark ? shade(c.swatch, 1.3) : shade(c.swatch, 0.86);
+      out += '<pattern id="v-' + c.val + '" width="220" height="40" patternUnits="userSpaceOnUse"><rect width="220" height="40" fill="' + c.swatch + '"/>' +
+        '<path d="M0 30 C40 22 70 34 110 18 S180 8 220 16" stroke="' + v1 + '" stroke-width="1.3" fill="none"/>' +
+        '<path d="M30 0 C60 12 90 6 120 26 S170 38 200 40" stroke="' + v2 + '" stroke-width="1" fill="none"/></pattern>';
+    });
+    return out;
+  }
   var HANDLE = [
     { val: 'black', name: 'Matte black', fill: '#1d1d1d' },
     { val: 'brass', name: 'Brushed brass', fill: '#c4a15a' },
@@ -44,7 +53,7 @@
   };
   var lists = { cabinet: CABINET, bench: BENCH, handle: HANDLE };
 
-  var ks = { layout: 'island', door: 'shaker', base: 'p-oasis', upper: 'p-classic-white', bench: 'calacatta', splash: 'subway', handle: 'brass' };
+  var ks = { layout: 'island', door: 'shaker', base: 'p-oasis', upper: 'p-classic-white', bench: 'cs-empira-white', splash: 'subway', handle: 'brass' };
   var ws = { wtype: 'walkin', wdoors: 'hinged', door: 'shaker', finish: 'l-tasmanian-oak', internals: 'balanced', light: 'on', handle: 'black' };
   var mode = 'kitchen';
   var state = ks;
@@ -58,7 +67,7 @@
     b.title = o.brand ? o.brand + ' ' + o.name : o.name;
     b.setAttribute('aria-label', b.title);
     var dot = document.createElement('span');
-    dot.className = 'dot' + (o.wood ? ' dot-wood' : '');
+    dot.className = 'dot' + (o.wood || o.val === 'timber' ? ' dot-wood' : '') + (o.vein ? ' dot-vein' : '');
     if (o.val === 'none') dot.classList.add('dot-none');
     else dot.style.backgroundColor = o.swatch || o.fill;
     b.appendChild(dot);
@@ -72,14 +81,17 @@
   }
   root.querySelectorAll('[data-swatches]').forEach(function (row) {
     var kind = row.dataset.swatches;
-    if (kind !== 'cabinet') {
+    var list = lists[kind];
+    if (kind === 'handle') {
       lists[kind].forEach(function (o) { row.appendChild(makeSwatch(o)); });
       return;
     }
     row.classList.add('board-picker');
+    var brands = [];
+    list.forEach(function (o) { if (brands.indexOf(o.brand) === -1) brands.push(o.brand); });
     var tabs = document.createElement('div');
     tabs.className = 'brand-tabs';
-    ['Polytec', 'Laminex'].forEach(function (brand, i) {
+    brands.forEach(function (brand, i) {
       var t = document.createElement('button');
       t.type = 'button';
       t.className = 'brand-tab' + (i === 0 ? ' is-active' : '');
@@ -89,13 +101,13 @@
       tabs.appendChild(t);
     });
     row.appendChild(tabs);
-    ['Polytec', 'Laminex'].forEach(function (brand, i) {
+    brands.forEach(function (brand, i) {
       var pane = document.createElement('div');
       pane.className = 'brand-pane';
       pane.dataset.brand = brand;
       pane.hidden = i !== 0;
       var lastGroup = null, wrap = null;
-      CABINET.forEach(function (o) {
+      list.forEach(function (o) {
         if (o.brand !== brand) return;
         if (o.group !== lastGroup) {
           lastGroup = o.group;
@@ -208,7 +220,7 @@
       '<pattern id="oak" width="60" height="16" patternUnits="userSpaceOnUse"><rect width="60" height="16" fill="#c9a06e"/><path d="M0 4 Q15 2 30 5 T60 4" stroke="#b48a58" stroke-width="1.4" fill="none"/><path d="M0 11 Q20 13 35 10 T60 12" stroke="#d8b483" stroke-width="1.2" fill="none"/></pattern>' +
       '<pattern id="walnut" width="60" height="16" patternUnits="userSpaceOnUse"><rect width="60" height="16" fill="#6e4a31"/><path d="M0 5 Q15 3 30 6 T60 5" stroke="#5a3b26" stroke-width="1.5" fill="none"/><path d="M0 12 Q20 14 35 11 T60 13" stroke="#80583c" stroke-width="1.2" fill="none"/></pattern>' +
       '<linearGradient id="mirror" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#dfe5e9"/><stop offset=".45" stop-color="#f6f8f9"/><stop offset=".55" stop-color="#cfd7dc"/><stop offset="1" stop-color="#e6ebee"/></linearGradient>' +
-      '<linearGradient id="floor" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d8cdbd"/><stop offset="1" stop-color="#c7b9a5"/></linearGradient>' + woodDefs() +
+      '<linearGradient id="floor" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d8cdbd"/><stop offset="1" stop-color="#c7b9a5"/></linearGradient>' + woodDefs() + veinDefs() +
       '<linearGradient id="led" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffe7b0" stop-opacity=".9"/><stop offset="1" stop-color="#ffe7b0" stop-opacity="0"/></linearGradient>' +
       '</defs>';
     svg += rect(0, 0, W, floorY, '#efe9e0') + rect(0, floorY, W, H - floorY, 'url(#floor)');
@@ -287,7 +299,7 @@
       '<pattern id="marble" width="220" height="40" patternUnits="userSpaceOnUse"><rect width="220" height="40" fill="#f3f1ec"/><path d="M0 30 C40 22 70 34 110 18 S180 8 220 16" stroke="#b9b4ab" stroke-width="1.3" fill="none"/><path d="M30 0 C60 12 90 6 120 26 S170 38 200 40" stroke="#d2cdc4" stroke-width="1" fill="none"/></pattern>' +
       '<pattern id="subway" width="48" height="24" patternUnits="userSpaceOnUse"><rect width="48" height="24" fill="#f7f7f5"/><path d="M0 0.5H48M0 12.5H48M0.5 0V12M24.5 12V24" stroke="#d7d5d0" stroke-width="1"/></pattern>' +
       '<linearGradient id="glass" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#4a4d50"/><stop offset=".5" stop-color="#5d6164"/><stop offset="1" stop-color="#3e4144"/></linearGradient>' +
-      '<linearGradient id="floor" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d8cdbd"/><stop offset="1" stop-color="#c7b9a5"/></linearGradient>' + woodDefs() +
+      '<linearGradient id="floor" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d8cdbd"/><stop offset="1" stop-color="#c7b9a5"/></linearGradient>' + woodDefs() + veinDefs() +
       '</defs>';
 
     // room
@@ -378,8 +390,8 @@
       });
       var picker = g.querySelector('.board-picker');
       if (picker) {
-        var sel = find(CABINET, state[key]);
-        picker.querySelector('.opt-current').textContent = sel.brand + ' ' + sel.name;
+        var sel = find(lists[picker.dataset.swatches], state[key]);
+        picker.querySelector('.opt-current').textContent = sel.val === 'timber' ? 'Timber top' : sel.brand + ' ' + sel.name;
         var shown = picker.querySelector('.brand-tab.is-active');
         if (!picker.dataset.touched || (shown && shown.dataset.brand !== sel.brand && lastPickFromRandom)) showBrand(picker, sel.brand);
       }
@@ -392,7 +404,7 @@
     var colours = base === upper ? base : base + ' base with ' + upper + ' overheads';
     var handles = state.door === 'fingerpull' ? 'fingerpull (no handles)' : find(HANDLE, state.handle).name.toLowerCase() + (state.handle === 'none' ? '' : ' handles');
     return LABELS.layout[state.layout] + ': ' + LABELS.door[state.door] + ' in ' + colours + ', ' +
-      find(BENCH, state.bench).name.toLowerCase() + ' benchtop, ' + LABELS.splash[state.splash] + ', ' + handles + '.';
+      cname(find(BENCH, state.bench)) + ' benchtop, ' + LABELS.splash[state.splash] + ', ' + handles + '.';
   }
 
   root.querySelectorAll('[data-mode-tab]').forEach(function (t) {

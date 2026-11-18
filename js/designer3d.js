@@ -68,6 +68,21 @@
       g.globalAlpha = 1;
     };
   }
+  function marble(base) {
+    var dark = parseInt(base.slice(1, 3), 16) < 0x80;
+    return function (g, w, h) {
+      g.fillStyle = base; g.fillRect(0, 0, w, h);
+      for (var i = 0; i < 9; i++) {
+        g.strokeStyle = dark ? (i % 3 ? shade(base, 1.3) : shade(base, 1.6)) : (i % 3 ? shade(base, 0.87) : shade(base, 0.74));
+        g.lineWidth = i % 3 ? 1 : 2.2;
+        g.beginPath();
+        var y = Math.random() * h;
+        g.moveTo(0, y);
+        g.bezierCurveTo(w * 0.3, y + (Math.random() - 0.5) * 200, w * 0.6, y + (Math.random() - 0.5) * 200, w, y + (Math.random() - 0.5) * 120);
+        g.stroke();
+      }
+    };
+  }
   var TEX = {
     oak: canvasTex(256, 256, grain('#c9a06e', '#a97f4d', '#dcb987')),
     walnut: canvasTex(256, 256, grain('#6e4a31', '#4f3422', '#86603f')),
@@ -81,18 +96,6 @@
           g.strokeStyle = 'rgba(0,0,0,.08)'; g.lineWidth = 2;
           g.strokeRect(c * 256 + off, r * 64, 256, 64);
         }
-      }
-    }),
-    marble: canvasTex(512, 512, function (g, w, h) {
-      g.fillStyle = '#f3f1ec'; g.fillRect(0, 0, w, h);
-      for (var i = 0; i < 9; i++) {
-        g.strokeStyle = i % 3 ? '#cfcac1' : '#b3ada3';
-        g.lineWidth = i % 3 ? 1 : 2.2;
-        g.beginPath();
-        var y = Math.random() * h;
-        g.moveTo(0, y);
-        g.bezierCurveTo(w * 0.3, y + (Math.random() - 0.5) * 200, w * 0.6, y + (Math.random() - 0.5) * 200, w, y + (Math.random() - 0.5) * 120);
-        g.stroke();
       }
     }),
     subway: canvasTex(256, 256, function (g, w, h) {
@@ -125,10 +128,10 @@
   }
   function benchMat(val) {
     return mat('bench-' + val, function () {
-      if (val === 'calacatta') return std(0xffffff, 0.25, 0, { map: TEX.marble });
       if (val === 'timber') return std(0xffffff, 0.5, 0, { map: TEX.oak });
       var b = find(D.BENCH, val);
-      return std(b.fill, val === 'black' ? 0.3 : 0.35);
+      if (b.vein) return std(0xffffff, 0.25, 0, { map: canvasTex(512, 512, marble(b.swatch)) });
+      return std(b.swatch, 0.32);
     });
   }
   function handleMat(val) {
