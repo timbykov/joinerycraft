@@ -249,7 +249,7 @@
     function Y(v) { return floorY - v * k; }
     var svg = svgOpen(SW, SH);
     svg += rect(0, 0, SW, floorY, '#efe9e0') + rect(0, floorY, SW, SH - floorY, 'url(#floor)');
-    var metal = state.handle === 'brass' ? '#c4a15a' : '#2a2a2a';
+    var metal = state.handle === 'brass' ? '#c4a15a' : state.handle === 'steel' ? '#a9adb1' : '#2a2a2a';
     var bTop = DIM.BASE_TOP + DIM.BENCH_T;
     // splashback and benchtop
     var splashFill = state.splash === 'subway' ? 'url(#subway)' : state.splash === 'glass' ? 'url(#glass)' : bench.fill;

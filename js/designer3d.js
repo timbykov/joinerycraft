@@ -137,9 +137,11 @@
   }
   function handleMat(val) {
     return mat('handle-' + val, function () {
-      if (val === 'brass') return std('#c4a15a', 0.35, 0.75);
-      if (val === 'steel') return std('#b9bdc1', 0.3, 0.8);
-      if (val === 'none') return std('#c3c6c9', 0.35, 0.6);
+      // the scene has no reflection map, so strongly metallic materials render almost black;
+      // keep metalness low with a touch of glow so brass and steel read as their own colour
+      if (val === 'brass') return std('#c9a55e', 0.32, 0.25, { emissive: '#4a3712', emissiveIntensity: 0.6 });
+      if (val === 'steel') return std('#c2c6ca', 0.28, 0.25, { emissive: '#3c4044', emissiveIntensity: 0.6 });
+      if (val === 'none') return std('#c3c6c9', 0.35, 0.2, { emissive: '#36393c', emissiveIntensity: 0.5 });
       return std('#1d1d1d', 0.5, 0.3);
     });
   }
@@ -152,7 +154,7 @@
     groove: std('#262523', 0.7),
     black: std('#1b1b1b', 0.35, 0.2),
     glass: std('#2a2c2e', 0.12, 0.4),
-    steel: std('#a7abaf', 0.35, 0.7),
+    steel: std('#b3b7bb', 0.32, 0.25, { emissive: '#383b3e', emissiveIntensity: 0.5 }),
     fridge: std('#c3c7cb', 0.3, 0.25),
     inner: std('#f7f4ef', 0.7),
     mirror: std('#e9eff3', 0.08, 0.35, { emissive: '#8a959c', emissiveIntensity: 0.35 }),
