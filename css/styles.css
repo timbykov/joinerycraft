@@ -479,3 +479,32 @@ body { position: relative; }
 .mat-suppliers { margin-top: 2.5rem; border-top: 1px solid var(--line); }
 .designer-promo .btn-row { margin: 0; }
 .trade h2 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 1.25rem; }
+
+/* Board colours (Polytec / Laminex) */
+.board-tabs { display: inline-grid; grid-template-columns: 1fr 1fr; background: var(--white); border: 1px solid var(--line); border-radius: 999px; padding: 4px; margin-bottom: 1.5rem; }
+.board-group { font-size: .8rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 1.75rem 0 .85rem; }
+.board-panel > .board-group:first-child { margin-top: .5rem; }
+.board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: .75rem; }
+.board { display: block; text-decoration: none; background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: .45rem; transition: transform .2s, box-shadow .2s; }
+.board:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.board-chip { display: block; aspect-ratio: 1; border-radius: 8px; border: 1px solid rgba(0,0,0,.08); }
+.board-wood { background-image: repeating-linear-gradient(178deg, rgba(0,0,0,0) 0 6px, rgba(60,35,15,.13) 6px 8px, rgba(255,245,225,.1) 8px 12px); }
+.board-name { display: block; font-size: .82rem; font-weight: 600; padding: .45rem .15rem .1rem; line-height: 1.25; }
+.board-more { margin: 1.5rem 0 0; }
+.board-note { margin: 1.5rem 0 0; font-size: .88rem; color: var(--muted); }
+.board-panel[hidden] { display: none; }
+@media (max-width: 640px) { .board-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; } .board-name { font-size: .74rem; } }
+
+/* Designer: Polytec / Laminex colour picker */
+.board-picker { display: block; }
+.brand-tabs { display: inline-flex; gap: .3rem; margin-bottom: .6rem; }
+.brand-tab { border: 1.5px solid var(--line); background: var(--white); color: var(--muted); border-radius: 999px; padding: .3rem .8rem; font-size: .8rem; font-weight: 700; }
+.brand-tab.is-active { border-color: var(--ink); color: var(--ink); }
+.brand-pane[hidden] { display: none; }
+.dot-group { margin: .5rem 0 .35rem; font-size: .72rem; color: var(--muted); font-weight: 600; }
+.dot-row { display: flex; flex-wrap: wrap; gap: .35rem; }
+.opt.opt-dot { padding: 3px; border-radius: 50%; }
+.opt.opt-dot .dot { width: 26px; height: 26px; }
+.dot-wood { background-image: repeating-linear-gradient(170deg, rgba(0,0,0,0) 0 3px, rgba(60,35,15,.18) 3px 4px); }
+.opt-current { margin: .6rem 0 0; font-size: .85rem; font-weight: 600; }
+@media (max-width: 640px) { .opt.opt-swatch.opt-dot { padding: 3px; } .opt.opt-dot .dot { width: 30px; height: 30px; } }

@@ -119,7 +119,7 @@
   function cabinetMat(val) {
     var c = find(D.CABINET, val);
     return mat('cab-' + c.val, function () {
-      if (c.val === 'oak' || c.val === 'walnut') return std(0xffffff, 0.6, 0, { map: TEX[c.val] });
+      if (c.wood) return std(0xffffff, 0.6, 0, { map: canvasTex(256, 256, grain(c.swatch, shade(c.swatch, 0.8), shade(c.swatch, 1.15))) });
       return std(c.fill, 0.55);
     });
   }
@@ -159,6 +159,11 @@
   };
   var CLOTHES = ['#8d9aa8', '#d9c9b3', '#5d6a63', '#b88a7a', '#e8e3da', '#3f4650', '#a7b49c', '#c9b28f'].map(function (c) { return std(c, 0.9); });
 
+  function shade(hex, f) {
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    function c(v) { return Math.max(0, Math.min(255, Math.round(f < 1 ? v * f : v + (255 - v) * (f - 1)))); }
+    return '#' + ((1 << 24) + (c(r) << 16) + (c(g) << 8) + c(b)).toString(16).slice(1);
+  }
   function find(list, v) { for (var i = 0; i < list.length; i++) if (list[i].val === v) return list[i]; return list[0]; }
 
   /* ---------- geometry helpers ---------- */
