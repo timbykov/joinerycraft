@@ -743,3 +743,11 @@ body.d3-locked { overflow: hidden; }
 .snap-banner span { display: block; font-size: .86rem; color: var(--muted); }
 .is-locked .designer-controls { pointer-events: none; opacity: .55; }
 .is-locked .designer-actions, .is-locked .design-save { display: none !important; }
+
+/* quote form: the 3D design that goes with the request */
+.design-attached { display: flex; gap: .75rem; align-items: flex-start; margin: 0 0 1rem; padding: .85rem 1rem; border: 1.5px solid var(--oak); border-radius: var(--radius); background: #fbf3ea; }
+.design-attached[hidden] { display: none; }
+.design-attached svg { flex: none; width: 22px; height: 22px; color: var(--oak); margin-top: .1rem; }
+.design-attached strong { display: block; font-size: .95rem; }
+.design-attached p { margin: .2rem 0 0; font-size: .86rem; color: var(--muted); }
+.design-attached-links a, .design-attached-links .btn-link { color: var(--oak-dark); font-weight: 600; font-size: .86rem; }

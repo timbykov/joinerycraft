@@ -907,12 +907,23 @@
     if (linkF) linkF.value = location.origin + '/?d=' + enc(snap) + '#design';
     var detF = document.getElementById('designDetailsField');
     if (detF) detF.value = 'Sent ' + sent.toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' }) + '\n' + designDetails();
+    /* show it on the quote form, so people can see their design is going with the request */
+    var att = document.getElementById('designAttached');
+    if (att) {
+      att.hidden = false;
+      att.querySelector('.design-attached-sum').textContent = summary().split('. ').slice(0, 2).join('. ').replace(/\.?$/, '.');
+      att.querySelector('.design-attached-view').href = linkF ? linkF.value : '#design';
+      att.querySelector('.design-attached-remove').onclick = function () {
+        att.hidden = true;
+        ['designField', 'designLinkField', 'designDetailsField', 'cabinetListField'].forEach(function (id) { var f = document.getElementById(id); if (f) f.value = ''; });
+        var dt = document.getElementById('details');
+        if (dt) dt.value = dt.value.replace(/^My design:.*(\n|$)/, '');
+      };
+    }
     var list = document.getElementById('cabinetListField');
     if (list && window.JCExport) list.value = window.JCExport.csv();
     var form = document.getElementById('quoteForm');
     if (!form) return;
-    var details = form.querySelector('#details');
-    if (details && details.value.indexOf('My design:') === -1) details.value = text + (details.value ? '\n' + details.value : '');
     var radio = form.querySelector('input[name=project][value="' + { kitchen: 'Kitchen', wardrobe: 'Wardrobes', laundry: 'Laundry', vanity: 'Vanity / bathroom' }[mode] + '"]');
     if (radio) {
       radio.checked = true;
