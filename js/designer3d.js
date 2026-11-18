@@ -176,6 +176,7 @@
   // box from min corner (x,y,z) with size (w,h,d)
   function box(parent, x, y, z, w, h, d, m, noShadow) {
     var b = new T.Mesh(boxGeo, m);
+    if (h <= 0.002) return b; // nothing to draw (e.g. cupboards that run to the ceiling)
     b.scale.set(w, h, d);
     b.position.set(x + w / 2, y + h / 2, z + d / 2);
     if (!noShadow) { b.castShadow = true; b.receiveShadow = true; }

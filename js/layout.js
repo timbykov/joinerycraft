@@ -11,17 +11,19 @@
   /* heights and depths the customer can change (Customise > Heights & depths) */
   function setDims(mode, s) {
     var c = function (v, d, lo, hi) { v = +v || d; return Math.min(hi, Math.max(lo, v)); };
-    if (mode === 'wardrobe') { W_D = c(s.wdepth, 0.6, 0.45, 0.7); }
+    if (mode === 'wardrobe') { W_D = c(s.wdepth, 0.6, 0.45, 0.7); CEIL = 2.7; }
     else {
       BASE_TOP = c(s.benchH, 0.91, 0.85, 0.95) - BENCH_T;
       BASE_D = c(s.baseD, 0.6, 0.56, 0.7) - 0.02;
       UP_D = c(s.upD, 0.34, 0.3, 0.4);
-      CEIL = c(s.ceiling, 2.7, 2.4, 3.0);
+      /* overheads, pantry and fridge cupboard all finish at one height; the room is drawn
+         with the cupboards running to the ceiling, so there is no bulkhead to set */
+      UP_TOP = TALL_TOP = CEIL = c(s.upTop, 2.2, 2.0, 2.7);
       FRIDGE_W = c(s.fridgeW, 0.92, 0.7, 1.0);
     }
     DIMS.KICK = KICK; DIMS.BASE_TOP = BASE_TOP; DIMS.BENCH_T = BENCH_T; DIMS.BASE_D = BASE_D; DIMS.UP_BOT = UP_BOT; DIMS.UP_TOP = UP_TOP;
     DIMS.UP_D = UP_D; DIMS.TALL_TOP = TALL_TOP; DIMS.CEIL = CEIL; DIMS.FRIDGE_W = FRIDGE_W; DIMS.W_D = W_D;
-    return { benchH: BASE_TOP + BENCH_T, baseD: BASE_D + 0.02, upD: UP_D, ceiling: CEIL, fridgeW: FRIDGE_W, wdepth: W_D };
+    return { benchH: BASE_TOP + BENCH_T, baseD: BASE_D + 0.02, upD: UP_D, upTop: UP_TOP, fridgeW: FRIDGE_W, wdepth: W_D };
   }
   var SECTION = { hang: 'Long hanging', hang2: 'Double hanging', shelf: 'Shelves', drawers: 'Drawers + shelves', shoes: 'Shoe shelves' };
   var MIX = {

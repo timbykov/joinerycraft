@@ -570,7 +570,7 @@
     var t = summaryCore(), D2 = L.dims, x = [];
     if (mode === 'wardrobe') { if (Math.abs(D2.W_D - 0.6) > 0.005) x.push(mm(D2.W_D) + ' mm deep'); }
     else {
-      if (Math.abs(D2.CEIL - 2.7) > 0.005) x.push(mm(D2.CEIL) + ' mm ceiling');
+      if (Math.abs(D2.UP_TOP - 2.2) > 0.005) x.push(mm(D2.UP_TOP) + ' mm to top of cupboards');
       if (Math.abs(D2.BASE_TOP + D2.BENCH_T - 0.91) > 0.005) x.push(mm(D2.BASE_TOP + D2.BENCH_T) + ' mm bench height');
       if (Math.abs(D2.BASE_D - 0.58) > 0.005) x.push(mm(D2.BASE_D + 0.02) + ' mm deep base cupboards');
       if (Math.abs(D2.UP_D - 0.34) > 0.005 && state.overheads === 'full') x.push(mm(D2.UP_D) + ' mm deep overheads');
@@ -804,7 +804,7 @@
   function designLink() { return location.origin + '/?d=' + enc(snapshot()) + '#design'; }
   function restore(o) {
     if (!o || o.v !== 1) return false;
-    if (o.k) Object.keys(o.k).forEach(function (k) { if (k in ks || /^(benchH|baseD|upD|ceiling|fridgeW)$/.test(k)) ks[k] = o.k[k]; });
+    if (o.k) Object.keys(o.k).forEach(function (k) { if (k in ks || /^(benchH|baseD|upD|upTop|fridgeW)$/.test(k)) ks[k] = o.k[k]; });
     if (o.w) Object.keys(o.w).forEach(function (k) { if (k in ws || k === 'wdepth') ws[k] = o.w[k]; });
     if (o.mode === 'wardrobe' || o.mode === 'kitchen') {
       var tab = root.querySelector('[data-mode-tab="' + o.mode + '"]');
