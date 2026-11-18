@@ -165,8 +165,47 @@
     form.querySelectorAll('input[name=project]').forEach(function (r) {
       r.addEventListener('change', function () { setTimeout(function () { go(1); }, 180); });
     });
+    /* Form sending. On Netlify the form posts natively (Netlify Forms).
+       Anywhere else (e.g. Cloudflare Pages) it goes to Web3Forms once
+       WEB3FORMS_KEY is filled in. Get a free key at web3forms.com using
+       the business email; that is where enquiries will arrive. */
+    var WEB3FORMS_KEY = '';
+    var onNetlify = /netlify\.app$/.test(location.hostname) || !WEB3FORMS_KEY;
+    if (!onNetlify) {
+      var fileField = form.querySelector('input[type=file]');
+      if (fileField) {
+        fileField.hidden = true; fileField.disabled = true;
+        var alt = form.querySelector('.files-alt'); if (alt) alt.hidden = false;
+        var fl = form.querySelector('label[for=files]'); if (fl) fl.textContent = 'Photos or plans';
+      }
+    }
     form.addEventListener('submit', function (e) {
-      if (!validStep(2)) e.preventDefault();
+      if (!validStep(2)) { e.preventDefault(); return; }
+      if (onNetlify) return;
+      e.preventDefault();
+      var btn = form.querySelector('button[type=submit]');
+      if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = 'Sending...'; }
+      var data = {};
+      new FormData(form).forEach(function (v, k) {
+        if (k === 'form-name' || k === 'files' || typeof v !== 'string') return;
+        data[k] = data[k] ? data[k] + ', ' + v : v;
+      });
+      if (data['bot-field']) return;
+      delete data['bot-field'];
+      data.access_key = WEB3FORMS_KEY;
+      data.subject = 'New quote request: ' + (data.project || 'website') + ' (' + (data.suburb || '') + ')';
+      data.from_name = 'Joinerycraft website';
+      fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(data)
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        if (!j.success) throw new Error(j.message || 'failed');
+        location.href = '/thank-you.html';
+      }).catch(function () {
+        err.textContent = 'Sorry, that did not send. Please try again or call 1300 205 498.';
+        if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label; }
+      });
     });
 
     /* Buttons that preselect a project type, e.g. "Book a showroom visit" */
