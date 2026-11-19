@@ -1158,4 +1158,11 @@
       window.scrollTo({ top: top, behavior: 'smooth' });
     });
   } else watchAndLoad();
+  /* tidy the address bar: once a shared link, ?design= or ?look= has opened, the design is saved on
+     this device, so the long code isn't needed any more. Quote snapshots keep theirs so a refresh
+     or bookmark still shows exactly what was sent. */
+  if (restoredFrom !== 'quote' && (qs.get('d') || qs.get('design') || qs.get('look'))) {
+    autosave();
+    try { history.replaceState(null, '', location.pathname + (location.hash || '#design')); } catch (e) {}
+  }
 })();

@@ -351,3 +351,16 @@
     els.forEach(function (el) { el.classList.add('reveal'); io.observe(el); });
   }
 })();
+
+/* logo on the home page: if the address is already clean, just scroll to the top instead of reloading */
+(function () {
+  var brand = document.querySelector('.site-header .brand');
+  if (!brand) return;
+  brand.addEventListener('click', function (e) {
+    if (location.pathname === '/' && !location.search) {
+      e.preventDefault();
+      if (location.hash) history.replaceState(null, '', '/');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+})();
